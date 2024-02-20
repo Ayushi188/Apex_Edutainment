@@ -1,22 +1,22 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import axios from 'axios';
-import '../assets/style.css';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import axios from "axios";
+import "../assets/style.css";
 
 const SignUp = () => {
   const [formData, setFormData] = useState({
-    firstName: '',
-    lastName: '',
-    email: '',
-    reEmail: '',
-    password: '',
-    age: '',
-    parentEmail: '',
-    school: '',
+    firstName: "",
+    lastName: "",
+    email: "",
+    reEmail: "",
+    password: "",
+    age: "",
+    parentEmail: "",
+    school: "",
   });
 
-  const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
+  const [error, setError] = useState("");
+  const [successMessage, setSuccessMessage] = useState("");
 
   const handleInputChange = (e) => {
     setFormData({
@@ -30,45 +30,50 @@ const SignUp = () => {
 
     try {
       if (!formData.email || !formData.password) {
-        setError('Email and password are required');
-        setSuccessMessage('');
+        setError("Email and password are required");
+        setSuccessMessage("");
         return;
       }
 
-      const response = await axios.post('http://localhost:4000/auth/register', formData);
+      const response = await axios.post(
+        "http://localhost:3001/register",
+        formData
+      );
+      console.log(formData);
+
       if (response.status === 201) {
-        console.log('User registered successfully');
+        console.log("User registered successfully");
         if (response.data.userId) {
-          sessionStorage.setItem('userId', response.data.userId);
+          sessionStorage.setItem("userId", response.data.userId);
         }
-        setError('');
-        setSuccessMessage('User registered successfully');
+        setError("");
+        setSuccessMessage("User registered successfully");
         // Clear form data
         setFormData({
-          firstName: '',
-          lastName: '',
-          email: '',
-          reEmail: '',
-          password: '',
-          age: '',
-          parentEmail: '',
-          school: '',
+          firstName: "",
+          lastName: "",
+          email: "",
+          reEmail: "",
+          password: "",
+          age: "",
+          parentEmail: "",
+          school: "",
         });
       } else if (response.status === 409) {
-        setError('User already exists');
-        setSuccessMessage('');
+        setError("User already exists");
+        setSuccessMessage("");
       } else {
-        setError('User registration failed');
-        setSuccessMessage('');
+        setError("User registration failed");
+        setSuccessMessage("");
       }
     } catch (error) {
       if (error.response.status === 409) {
-        setError('User already exists');
+        setError("User already exists");
       } else {
-        console.error('Error during registration:', error.message);
+        console.error("Error during registration:", error.message);
         setError(error.message);
       }
-      setSuccessMessage('');
+      setSuccessMessage("");
     }
   };
 
@@ -80,10 +85,17 @@ const SignUp = () => {
             <div className="card-body">
               <div className="row">
                 <div className="col-md-6 d-flex justify-content-center align-items-center">
-                  <img src="img/logos/7.jpeg" style={{ width: '480px' }} alt="Registration" className="img-fluid" />
+                  <img
+                    src="img/logos/7.jpeg"
+                    style={{ width: "480px" }}
+                    alt="Registration"
+                    className="img-fluid"
+                  />
                 </div>
                 <div className="col-md-6 text-center">
-                  <h4 className="card-title mb-4 mt-5 txt-login-signup">Sign Up</h4>
+                  <h4 className="card-title mb-4 mt-5 txt-login-signup">
+                    Sign Up
+                  </h4>
                   <form>
                     <div className="mb-3">
                       <input
@@ -166,10 +178,12 @@ const SignUp = () => {
                       />
                     </div>
                     {error && <div className="text-danger mt-2">{error}</div>}
-                    {successMessage && <div className="text-success mt-2">{successMessage}</div>}
+                    {successMessage && (
+                      <div className="text-success mt-2">{successMessage}</div>
+                    )}
 
                     <button
-                      type="submit"
+                      type="button"
                       className="btn btn-submit btn-primary"
                       onClick={formValidation}
                     >
