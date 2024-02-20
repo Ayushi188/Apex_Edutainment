@@ -10,6 +10,7 @@ import {
 import Register from './Screens/Register';
 import 'sweetalert2/dist/sweetalert2.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
+import Login from './Screens/Login';
 function App() {
   const [count, setCount] = useState(0)
 
@@ -24,6 +25,7 @@ function App() {
               <div>
                 <Routes>
                     <Route path="/register" element={<Register />} />
+                    <Route path="/login" element={<Login />} />
                 </Routes>
               </div> 
             </Router>   
