@@ -29,7 +29,7 @@ const Login = () => {
         return;
       }
 
-      const response = await axios.post('http://localhost:4000/auth/login', formData);
+      const response = await axios.post('http://localhost:3001/login', formData);
       if (response.status === 200) {
         console.log('User logged in successfully');
         // Handle successful login (e.g., redirect to dashboard)
