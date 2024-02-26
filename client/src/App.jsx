@@ -19,21 +19,16 @@ function App() {
 
   return (
     <>
-      <div > 
-           </div>
-           <div className="App" >
-           {/* <h1>Apex Edutaintment</h1> */}
-
-            <Router>
-              <div>
-                <Routes>
-                    <Route path="/home" element={<Home />} />
-
-                    <Route path="/register" element={<Register />} />
-                    <Route path="/login" element={<Login />} />
-                </Routes>
-              </div> 
-            </Router>   
+      <div className="App" >
+        <Router>
+          <div>
+            <Routes>
+                <Route path="/home" element={<Home />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/login" element={<Login />} />
+            </Routes>
+          </div> 
+        </Router>   
       </div>
     </>
   )
