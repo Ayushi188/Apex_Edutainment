@@ -48,14 +48,14 @@ const Login = () => {
     <div className="container">
       <div className="row justify-content-center align-items-center ">
         <div className="col-md-10">
-          <div className="card mt-5">
+          <div className="card mt-5"  style={{ backgroundColor: '#e0e1fc'}}>
             <div className="card-body">
               <div className="row">
                 <div className="col-md-6 d-flex justify-content-center align-items-center">
-                  <img src="img/logos/7.jpeg" style={{ width: '480px' }} alt="Login" className="img-fluid" />
+                  <img src="img/login1.jpeg" style={{ width: '650px',transform: 'scale(1.2)' }} alt="Login" className="img-fluid" />
                 </div>
                 <div className="col-md-6 text-center">
-                  <h4 className="card-title mb-4 mt-5 txt-login-signup">Login</h4>
+                  <h4 className="card-title mb-4 mt-5 txt-login-signup" >Login</h4>
                   <form>
                     <div className="mb-3">
                       <input
@@ -81,6 +81,7 @@ const Login = () => {
                     {successMessage && <div className="text-success mt-2">{successMessage}</div>}
 
                     <button
+                    style={{ backgroundColor: '#8781fc',borderColor:'#8781fc',fontFamily: 'Luminari, fantasy'}}
                       type="submit"
                       className="btn btn-submit btn-primary"
                       onClick={formValidation}

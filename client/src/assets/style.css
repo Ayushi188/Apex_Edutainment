@@ -84,14 +84,14 @@ form{
 }
 
 .txt-register{
-	font-family: montserrat-regular;
+	font-family:Luminari, fantasy;
 	color: #999;
 	font-size: 16px;
 }
 
 .txt-login-signup{
                     font-size: 35px;
-                    font-family: elmessiri-semibold;
+                    font-family: Luminari, fantasy;
                     text-align: center;
                     margin-bottom: 27px;
                     color: #2810e2;
