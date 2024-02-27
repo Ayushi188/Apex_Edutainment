@@ -17,12 +17,30 @@ const SignUp = () => {
 
   const [error, setError] = useState("");
   const [successMessage, setSuccessMessage] = useState("");
+  const [registrationType, setRegistrationType] = useState('teacher');
+
 
   const handleInputChange = (e) => {
     setFormData({
       ...formData,
       [e.target.id]: e.target.value,
     });
+  };
+
+  const handleToggleClick = (type) => {
+    setRegistrationType(type);
+    formData.reg_type = type;
+    if (type === 'teacher') {
+      document.getElementById('teacherBtn').classList.remove('btn-success');
+      document.getElementById('teacherBtn').classList.add('btn-dark');
+      document.getElementById('studentBtn').classList.remove('btn-dark');
+      document.getElementById('studentBtn').classList.add('btn-success');
+    } else {
+      document.getElementById('studentBtn').classList.remove('btn-success');
+      document.getElementById('studentBtn').classList.add('btn-dark');
+      document.getElementById('teacherBtn').classList.remove('btn-dark');
+      document.getElementById('teacherBtn').classList.add('btn-success');
+    }
   };
 
   const formValidation = async (event) => {
@@ -58,6 +76,7 @@ const SignUp = () => {
           age: "",
           parentEmail: "",
           school: "",
+          reg_type : "teacher"
         });
       } else if (response.status === 409) {
         setError("User already exists");
@@ -84,7 +103,33 @@ const SignUp = () => {
           <div className="card mt-5" style={{ backgroundColor: 'rgb(176 197 245)'}}>
             <div className="card-body">
             <div className="row">
-            <h4 className="card-title mb-4 mt-5 txt-login-signup">Sign Up</h4>
+              <div className="row">
+                <div className="col-md-8">
+                <h4 className="card-title mb-4 mt-5 txt-login-signup">Sign Up</h4>
+
+                </div>
+                <div className="col-md-4">
+                <div className="btn-group btn-group-sm justify-content-end mb-3">
+                    <button
+                      id="teacherBtn"
+                      type="button"
+                      className={`btn ${registrationType === 'teacher' ? 'btn-success active' : 'btn-secondary'}`}
+                      onClick={() => handleToggleClick('teacher')}
+                    >
+                      Teacher
+                    </button>
+                    <button
+                      id="studentBtn"
+                      type="button"
+                      className={`btn ${registrationType === 'student' ? 'btn-success active' : 'btn-secondary'}`}
+                      onClick={() => handleToggleClick('student')}
+                    >
+                      Student
+                    </button>
+                  </div>
+              </div>
+              </div>
+            
 
               {/* Section for the image */}
               <div className="col-md-4 d-flex justify-content-center align-items-center">
@@ -161,26 +206,56 @@ const SignUp = () => {
                     value={formData.age}
                   />
                 </div>
-                <div className="mb-3">
-                  <input
-                    type="email"
-                    className="form-control"
-                    id="parentEmail"
-                    placeholder="Enter Parent/Guardian Email"
-                    onChange={handleInputChange}
-                    value={formData.parentEmail}
-                  />
-                </div>
-                <div className="mb-3">
-                  <input
-                    type="text"
-                    className="form-control"
-                    id="school"
-                    placeholder="Enter Class"
-                    onChange={handleInputChange}
-                    value={formData.school}
-                  />
-                </div>
+                {registrationType === "student" ? (
+                    <div className="mb-3">
+                      <input
+                        type="email"
+                        className="form-control"
+                        id="parentEmail"
+                        placeholder="Enter Parent/Guardian Email"
+                        onChange={handleInputChange}
+                        value={formData.parentEmail}
+                      />
+                    </div>
+                  ) : (
+                    <div className="mb-3">
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="parentEmail"
+                        placeholder="Enter Phone No"
+                        onChange={handleInputChange}
+                        value={formData.parentEmail}
+                      />
+                    </div>
+                  )}
+
+                  {registrationType === "student" ? (
+                    <div className="mb-3">
+                      <input
+                        type="email"
+                        className="form-control"
+                        id="school"
+                        placeholder="Enter Class"
+                        onChange={handleInputChange}
+                        value={formData.school}
+                      />
+                    </div>
+                  ) : (
+                    <div className="mb-3">
+                      <input
+                        type="text"
+                        className="form-control"
+                        id="school"
+                        placeholder="Enter Subject"
+                        onChange={handleInputChange}
+                        value={formData.school}
+                      />
+                    </div>
+                  )}
+
+               
+          
                 {error && <div className="text-danger mt-2">{error}</div>}
                 {successMessage && <div className="text-success mt-2">{successMessage}</div>}
 

@@ -110,3 +110,14 @@ form{
 	background-color: #008080;
 	color:#fff;
 }
+
+.btn-success.active {
+	background-color: #28a745; /* Brighter green */
+	box-shadow: 0 0 10px #fff; /* Green shadow */
+  }
+  
+  .btn-dark.active {
+	background-color: #6c757d; /* Dull gray */
+	box-shadow: 0 0 10px rgba(108, 117, 125, 0.5); /* Gray shadow */
+  }
+  
