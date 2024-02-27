@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const UserSchema = new mongoose.Schema({
   firstName: String,
@@ -12,11 +13,29 @@ const UserSchema = new mongoose.Schema({
 
 })
 
+UserSchema.pre('save', async function(next) {
+  try {
+    if (!this.isModified('password')) {
+      return next();
+    }
+    const hashedPassword = await bcrypt.hash(this.password, 10);
+    this.password = hashedPassword;
+    next();
+  } catch (error) {
+    next(error);
+  }
+});
+
 // Define a method to validate user's password
-UserSchema.methods.isValidPassword = function(password) {
-  // Compare the provided password with the stored password
-  return this.password === password;
+UserSchema.methods.isValidPassword = async function(password) {
+  try {
+    return await bcrypt.compare(password, this.password);
+  } catch (error) {
+    console.error(error);
+    throw new Error('Password validation failed');
+  }
 };
+
 
 const UserModel = mongoose.model("user",UserSchema);
 module.exports = UserModel;
