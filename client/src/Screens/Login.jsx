@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../assets/style.css';
 
@@ -11,6 +11,7 @@ const Login = () => {
 
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const navigate = useNavigate(); // Use useNavigate hook
 
   const handleInputChange = (e) => {
     setFormData({
@@ -32,7 +33,10 @@ const Login = () => {
       const response = await axios.post('http://localhost:3001/login', formData);
       if (response.status === 200) {
         console.log('User logged in successfully');
-        // Handle successful login (e.g., redirect to dashboard)
+        setSuccessMessage('Logged in successfully');
+        // Redirect to home page after successful login
+        navigate('/home'); // <-- Highlighted code for redirection
+        
       } else {
         setError('Invalid email or password');
         setSuccessMessage('');
