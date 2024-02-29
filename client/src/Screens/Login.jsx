@@ -11,7 +11,7 @@ const Login = () => {
 
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const navigate = useNavigate(); // Use useNavigate hook
+  const navigate = useNavigate(); 
 
   const handleInputChange = (e) => {
     setFormData({
@@ -34,8 +34,8 @@ const Login = () => {
       if (response.status === 200) {
         console.log('User logged in successfully');
         setSuccessMessage('Logged in successfully');
-        // Redirect to home page after successful login
-        navigate('/home'); // <-- Highlighted code for redirection
+        
+        navigate('/home'); 
         
       } else {
         setError('Invalid email or password');
