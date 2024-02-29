@@ -11,7 +11,7 @@ const Login = () => {
 
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
-  const navigate = useNavigate(); 
+  const navigate = useNavigate(); //navigate
 
   const handleInputChange = (e) => {
     setFormData({
