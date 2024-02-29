@@ -35,7 +35,7 @@ const Login = () => {
         console.log('User logged in successfully');
         setSuccessMessage('Logged in successfully');
         // Redirect to home page after successful login
-        navigate('/home'); // <-- Highlighted code for redirection
+        navigate('/home'); 
         
       } else {
         setError('Invalid email or password');
