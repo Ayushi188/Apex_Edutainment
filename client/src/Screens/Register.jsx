@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
 import axios from "axios";
+import { Modal, Button } from "react-bootstrap"; // Added imports for modal
 import "../assets/style.css";
 
 const SignUp = () => {
@@ -15,10 +16,10 @@ const SignUp = () => {
     school: "",
   });
 
-  const [errors, setErrors] = useState("");
+  const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
-  const [registrationType, setRegistrationType] = useState('teacher');
-
+  const [registrationType, setRegistrationType] = useState("teacher");
+  const [showModal, setShowModal] = useState(false);
 
   const handleInputChange = (e) => {
     setFormData({
@@ -30,44 +31,49 @@ const SignUp = () => {
   const handleToggleClick = (type) => {
     setRegistrationType(type);
     formData.reg_type = type;
-    if (type === 'teacher') {
-      document.getElementById('teacherBtn').classList.remove('btn-success');
-      document.getElementById('teacherBtn').classList.add('btn-dark');
-      document.getElementById('studentBtn').classList.remove('btn-dark');
-      document.getElementById('studentBtn').classList.add('btn-success');
+    if (type === "teacher") {
+      document.getElementById("teacherBtn").classList.remove("btn-success");
+      document.getElementById("teacherBtn").classList.add("btn-dark");
+      document.getElementById("studentBtn").classList.remove("btn-dark");
+      document.getElementById("studentBtn").classList.add("btn-success");
     } else {
-      document.getElementById('studentBtn').classList.remove('btn-success');
-      document.getElementById('studentBtn').classList.add('btn-dark');
-      document.getElementById('teacherBtn').classList.remove('btn-dark');
-      document.getElementById('teacherBtn').classList.add('btn-success');
+      document.getElementById("studentBtn").classList.remove("btn-success");
+      document.getElementById("studentBtn").classList.add("btn-dark");
+      document.getElementById("teacherBtn").classList.remove("btn-dark");
+      document.getElementById("teacherBtn").classList.add("btn-success");
     }
+  };
+
+  const handleCloseModal = () => {
+    setShowModal(false);
   };
 
   const formValidation = async (event) => {
     event.preventDefault();
-  
+
     // Validate the form
     const formErrors = validateForm();
-  
+
     // Check if there are any errors
     if (Object.keys(formErrors).length > 0) {
       setErrors(formErrors); // Update the errors state with the validation errors
+      setShowModal(true); // Show the modal with errors
       return; // Exit the function if there are errors
     }
-  
+
     try {
       // Send the form data to the server
       const response = await axios.post(
         "http://localhost:3001/register",
         formData
       );
-  
+
       if (response.status === 201) {
         console.log("User registered successfully");
         if (response.data.userId) {
           sessionStorage.setItem("userId", response.data.userId);
         }
-        setErrors (""); // Clear any previous errors
+        setErrors({}); // Clear any previous errors
         setSuccessMessage("User registered successfully");
         // Clear form data
         setFormData({
@@ -79,191 +85,319 @@ const SignUp = () => {
           age: "",
           parentEmail: "",
           school: "",
-          reg_type: "teacher"
+          reg_type: "teacher",
         });
-        setErrors({}); // Clear any previous validation errors
       } else if (response.status === 409) {
-        setErrors ("User already exists");
+        setErrors({ user: "User already exists" });
         setSuccessMessage("");
       } else {
-        setErrors ("User registration failed");
+        setErrors({ user: "User registration failed" });
         setSuccessMessage("");
       }
     } catch (error) {
       if (error.response.status === 409) {
-        setErrors ("User already exists");
+        setErrors({ user: "User already exists" });
       } else {
         console.error("Error during registration:", error.message);
-        setErrors (error.message);
+        setErrors({ user: error.message });
       }
       setSuccessMessage("");
     }
   };
-  
-  
+
   const validateForm = () => {
     let errors = {};
-  
+
     // Validate First Name
     if (!formData.firstName.trim()) {
       errors.firstName = "Kindly Enter First Name";
     }
-    
+
     // Validate Last Name
     if (!formData.lastName.trim()) {
       errors.lastName = "Kindly Enter Last Name";
     }
-  
+
     // Validate Email
     if (!formData.email.trim()) {
       errors.email = "Kindly Enter Email";
     } else if (!/^\S+@\S+\.\S+$/.test(formData.email)) {
       errors.email = "Kindly Enter a valid email address";
     }
-  
+
+    if (!formData.reEmail.trim()) {
+      errors.reEmail = "Kindly Enter Re-Email";
+    } else if (!/^\S+@\S+\.\S+$/.test(formData.reEmail)) {
+      errors.email = "Kindly Enter a valid re-email address";
+    }
+
     // Validate Re-entered Email
     if (formData.email !== formData.reEmail) {
       errors.reEmail = "Emails do not match";
     }
-  
+
     // Validate Password
     if (!formData.password.trim()) {
       errors.password = "Kindly Enter Password";
     }
-  
+
     // Validate Age
     if (!formData.age.trim()) {
       errors.age = "Kindly Enter Age";
     }
-  
+
     // Validate Phone Number
     if (!formData.parentEmail.trim()) {
-      if(formData.reg_type == 'teacher'){
+      if (formData.reg_type === "teacher") {
         errors.parentEmail = "Kindly Enter Phone No";
+      } else {
+        errors.parentEmail = "Kindly Enter Parent/Guardian Email";
       }
-      else{
-        errors.parentEmail = "Kindly Enter Parent/Guardian Email ";
-      }
-    } else if (!/^\d{10}$/.test(formData.parentEmail) && formData.reg_type == 'teacher') {
+    } else if (
+      !/^\d{10}$/.test(formData.parentEmail) &&
+      formData.reg_type === "teacher"
+    ) {
       errors.parentEmail = "Kindly Enter a valid 10-digit phone number";
-    }else if (!/^\S+@\S+\.\S+$/.test(formData.parentEmail)&& formData.reg_type == 'student') {
-      errors.email = "Kindly Enter a valid email address";
+    } else if (
+      !/^\S+@\S+\.\S+$/.test(formData.parentEmail) &&
+      formData.reg_type === "student"
+    ) {
+      errors.parentEmail = "Kindly Enter a valid email address";
     }
-  
+
     // Validate Subject
     if (!formData.school.trim()) {
-      if(formData.reg_type == 'teacher')
+      if (formData.reg_type === "teacher")
         errors.school = "Kindly Enter Subject";
-      else
-        errors.school = "Kindly Enter Class";
+      else errors.school = "Kindly Enter Class";
     }
-  
+
     return errors;
   };
-  
 
   return (
     <div className="container">
-    <div className="row justify-content-center align-items-center">
-      <div className="col-md-10">
-        <div className="card mt-5" style={{ backgroundColor: 'rgb(176 197 245)' }}>
-          <div className="card-body">
-            <div className="row">
-              <div className="col-md-4">
-                <h4 className="card-title mb-4 mt-5 txt-login-signup">Sign Up</h4>
-              </div>
-              <div className="col-md-3"></div>
-              <div className="col-md-5">
-                <div className="btn-group btn-group-sm justify-content-end mb-3">
-                  <button id="teacherBtn" type="button" className={`btn ${registrationType === 'teacher' ? 'btn-success active' : 'btn-secondary'}`} onClick={() => handleToggleClick('teacher')}>Teacher</button>
-                  <button id="studentBtn" type="button" className={`btn ${registrationType === 'student' ? 'btn-success active' : 'btn-secondary'}`} onClick={() => handleToggleClick('student')}> Student </button>
+      <div className="row justify-content-center align-items-center">
+        <div className="col-md-10">
+          <div
+            className="card mt-5"
+            style={{ backgroundColor: "rgb(176 197 245)" }}
+          >
+            <div className="card-body">
+              <div className="row  align-items-center">
+                <div className="col-md-4">
+                  <h4 className="card-title mb-4 mt-4 txt-login-signup">
+                    Sign Up
+                  </h4>
+                </div>
+                <div className="col-md-5"></div>
+                <div className="col-md-3">
+                  <div className="btn-group btn-group-sm justify-content-end mb-3">
+                    <button
+                      id="teacherBtn"
+                      type="button"
+                      className={`btn ${
+                        registrationType === "teacher"
+                          ? "btn-success active"
+                          : "btn-dark active"
+                      }`}
+                      onClick={() => handleToggleClick("teacher")}
+                    >
+                      Teacher
+                    </button>
+                    <button
+                      id="studentBtn"
+                      type="button"
+                      className={`btn ${
+                        registrationType === "student"
+                          ? "btn-success active"
+                          : "btn-dark active"
+                      }`}
+                      onClick={() => handleToggleClick("student")}
+                    >
+                      {" "}
+                      Student{" "}
+                    </button>
+                  </div>
                 </div>
               </div>
-            </div>
-  
-            <div className="row">
-              {/* Section for the image */}
-              <div className="col-md-4 d-flex justify-content-center align-items-center">
-                <img src="img/signup7.jpeg" style={{ width: '800px', transform: 'scale(1.1)' }} alt="Registration" className="img-fluid" />
-              </div>
-  
-              {/* Section for the input fields */}
-              <div className="col-md-8">
-                <form>
-                  {/* First half of the input fields */}
-                  <div className="row">
-                    <div className="col-md-6">
-                      <div className="">
-                        <input type="text" className="form-control" id="firstName" placeholder="Enter First Name" onChange={handleInputChange} value={formData.firstName} />
-                        {errors.firstName && <div className="text-danger">{errors.firstName}</div>}
+
+              <div className="row">
+                {/* Section for the image */}
+                <div className="col-md-4 d-flex justify-content-center align-items-center">
+                  <img
+                    src="img/signup7.jpeg"
+                    style={{ width: "800px", transform: "scale(1.1)" }}
+                    alt="Registration"
+                    className="img-fluid"
+                  />
+                </div>
+
+                {/* Section for the input fields */}
+                <div className="col-md-8">
+                  <form onSubmit={formValidation}>
+                    {/* First half of the input fields */}
+                    <div className="row">
+                      <div className="col-md-6">
+                        <div className="">
+                          <input
+                            type="text"
+                            className="form-control"
+                            id="firstName"
+                            placeholder="Enter First Name"
+                            onChange={handleInputChange}
+                            value={formData.firstName}
+                          />
+                        </div>
+                        <div className="">
+                          <input
+                            type="text"
+                            className="form-control"
+                            id="lastName"
+                            placeholder="Enter Last Name"
+                            onChange={handleInputChange}
+                            value={formData.lastName}
+                          />
+                        </div>
+                        <div className="">
+                          <input
+                            type="email"
+                            className="form-control"
+                            id="email"
+                            placeholder="Enter Email"
+                            onChange={handleInputChange}
+                            value={formData.email}
+                          />
+                        </div>
+                        <div className="">
+                          <input
+                            type="email"
+                            className="form-control"
+                            id="reEmail"
+                            placeholder="Re-Enter Email"
+                            onChange={handleInputChange}
+                            value={formData.reEmail}
+                          />
+                        </div>
                       </div>
-                      <div className="">
-                        <input type="text" className="form-control" id="lastName" placeholder="Enter Last Name" onChange={handleInputChange} value={errors.lastName} />
-                        {errors.lastName != '' && <div className="text-danger">{errors.lastName}</div>}
-                      </div>
-                      <div className="">
-                        <input type="email" className="form-control" id="email" placeholder="Enter Email" onChange={handleInputChange} value={formData.email} />
-                        {errors.email && <div className="text-danger">{errors.email}</div>}
-                      </div>
-                      <div className="">
-                        <input type="email" className="form-control" id="reEmail" placeholder="Re-Enter Email" onChange={handleInputChange} value={formData.reEmail} />
-                        {errors.reEmail && <div className="text-danger">{errors.reEmail}</div>}
+
+                      {/* Second half of the input fields */}
+                      <div className="col-md-6">
+                        <div className="">
+                          <input
+                            type="password"
+                            className="form-control"
+                            id="password"
+                            placeholder="Password"
+                            onChange={handleInputChange}
+                            value={formData.password}
+                          />
+                        </div>
+                        <div className="">
+                          <input
+                            type="number"
+                            className="form-control"
+                            id="age"
+                            placeholder="Enter Age"
+                            onChange={handleInputChange}
+                            value={formData.age}
+                          />
+                        </div>
+                        {registrationType !== "teacher" ? (
+                          <div className="">
+                            <input
+                              type="email"
+                              className="form-control"
+                              id="parentEmail"
+                              placeholder="Enter Parent/Guardian Email"
+                              onChange={handleInputChange}
+                              value={formData.parentEmail}
+                            />
+                          </div>
+                        ) : (
+                          <div className="">
+                            <input
+                              type="text"
+                              className="form-control"
+                              id="parentEmail"
+                              placeholder="Enter Phone No"
+                              onChange={handleInputChange}
+                              value={formData.parentEmail}
+                            />
+                          </div>
+                        )}
+
+                        {registrationType !== "teacher" ? (
+                          <div className="">
+                            <input
+                              type="email"
+                              className="form-control"
+                              id="school"
+                              placeholder="Enter Class"
+                              onChange={handleInputChange}
+                              value={formData.school}
+                            />
+                          </div>
+                        ) : (
+                          <div className="">
+                            <input
+                              type="text"
+                              className="form-control"
+                              id="school"
+                              placeholder="Enter Subject"
+                              onChange={handleInputChange}
+                              value={formData.school}
+                            />
+                          </div>
+                        )}
                       </div>
                     </div>
-  
-                    {/* Second half of the input fields */}
-                    <div className="col-md-6">
-                      <div className="">
-                        <input type="password" className="form-control" id="password" placeholder="Password" onChange={handleInputChange} value={formData.password} />
-                        {errors.password && <div className="text-danger">{errors.password}</div>}
-                      </div>
-                      <div className="">
-                        <input type="number" className="form-control" id="age" placeholder="Enter Age" onChange={handleInputChange} value={formData.age} />
-                        {errors.age && <div className="text-danger">{errors.age}</div>}
-                      </div>
-                      {registrationType === "student" ? (
-                        <div className="">
-                          <input type="email" className="form-control" id="parentEmail" placeholder="Enter Parent/Guardian Email" onChange={handleInputChange} value={formData.parentEmail} />
-                          {errors.parentEmail && <div className="text-danger">{errors.parentEmail}</div>}
-                        </div>
-                      ) : (
-                        <div className="">
-                          <input type="text" className="form-control" id="parentEmail" placeholder="Enter Phone No" onChange={handleInputChange} value={formData.parentEmail} />
-                          {errors.parentEmail && <div className="text-danger">{errors.parentEmail}</div>}
-                        </div>
-                      )}
-  
-                      {registrationType === "student" ? (
-                        <div className="">
-                          <input type="email" className="form-control" id="school" placeholder="Enter Class" onChange={handleInputChange} value={formData.school} />
-                          {errors.school && <div className="text-danger">{errors.school}</div>}
-                        </div>
-                      ) : (
-                        <div className="">
-                          <input type="text" className="form-control" id="school" placeholder="Enter Subject" onChange={handleInputChange} value={formData.school} />
-                          {errors.school && <div className="text-danger">{errors.school}</div>}
-                        </div>
-                      )}
+
+                    <div>
+                      <button
+                        type="submit"
+                        className="btn-submit btn-primary"
+                        style={{
+                          backgroundColor: "rgb(8 54 117)",
+                          fontFamily: "Luminari, fantasy",
+                          borderColor: "rgb(8 54 117)",
+                        }}
+                      >
+                        Sign Up
+                      </button>
                     </div>
+                  </form>
+                  <div className="mt-3 txt-register">
+                    <span>Already have an account?</span>
+                    <Link to="/login" className="ms-2 btn-register">
+                      Login
+                    </Link>
                   </div>
-  
-                  <div className=" text-end">
-                    <button type="submit" className="btn btn-submit btn-primary" onClick={formValidation} style={{ backgroundColor: 'rgb(8 54 117)', fontFamily: 'Luminari, fantasy', borderColor: 'rgb(8 54 117)' }}>Sign Up</button>
-                  </div>
-                </form>
+                </div>
               </div>
-            </div>
-  
-            <div className="mt-3 txt-register">
-              <span>Already have an account?</span>
-              <Link to="/login" className="ms-2 btn-register">Login</Link>
             </div>
           </div>
         </div>
       </div>
+
+      {/* Modal for displaying errors */}
+
+      <Modal show={showModal} onHide={handleCloseModal}>
+        <Modal.Header closeButton>
+          <Modal.Title>Errors</Modal.Title>
+        </Modal.Header>
+        <Modal.Body className="custom-modal-body">
+          {Object.keys(errors).map((field) => (
+            <p key={field}>{errors[field]}</p>
+          ))}
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleCloseModal}>
+            Close
+          </Button>
+        </Modal.Footer>
+      </Modal>
     </div>
-  </div>
-  
   );
 };
 
