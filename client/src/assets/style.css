@@ -42,9 +42,9 @@
 	border-top:1px solid #ccc;
 	border-right:1px solid #ccc;
 }
-form{
+/* form{
 	padding: 0 2em;
-}
+} */
 .form__input{
 	width: 100%;
 	border:0px solid transparent;
@@ -90,7 +90,7 @@ form{
 }
 
 .txt-login-signup{
-                    font-size: 35px;
+                    font-size: 46px;
                     font-family: Luminari, fantasy;
                     text-align: center;
                     margin-bottom: 27px;
@@ -110,3 +110,23 @@ form{
 	background-color: #008080;
 	color:#fff;
 }
+
+.btn-success.active {
+	background-color: #28a745; /* Brighter green */
+	box-shadow: 0 0 10px #fff; /* Green shadow */
+	font-size: 1.2em; /* Increase the font size */
+  
+  }
+  
+  .btn-dark.active {
+	background-color: #6c757d; /* Dull gray */
+	box-shadow: 0 0 10px rgba(108, 117, 125, 0.5); /* Gray shadow */
+	font-size: 1.2em; 
+  }
+  
+	.custom-modal-body {
+		background-color: #FFCCCC; /* Set your desired background color */
+		color: red; /* Set your desired text color */
+		font-weight: bold;
+	}
+	
