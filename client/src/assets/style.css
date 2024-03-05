@@ -123,6 +123,7 @@
 	box-shadow: 0 0 10px rgba(108, 117, 125, 0.5); /* Gray shadow */
 	font-size: 1.2em; 
   }
+<<<<<<< Updated upstream
   
 	.custom-modal-body {
 		background-color: #FFCCCC; /* Set your desired background color */
@@ -130,3 +131,20 @@
 		font-weight: bold;
 	}
 	
+=======
+  /*Video section*/
+  .video-section {
+	padding: 50px 0;
+  }
+  
+  .video-section .row {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+  }
+  
+  .video-section .react-player {
+	width: 100%;
+  }
+    /*Video section*/
+>>>>>>> Stashed changes

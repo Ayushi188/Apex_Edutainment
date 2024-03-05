@@ -1,25 +1,51 @@
-import React from 'react';
-import { Link } from 'react-router-dom'; 
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import axios from 'axios';
 import '../assets/Navbar.css';
 
 const Header = () => {
+  const [courses, setCourses] = useState([]);
+
+  useEffect(() => {
+    fetchCourses();
+  }, []);
+
+  const fetchCourses = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/api/courses');
+      setCourses(response.data);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+    }
+  };
+
   return (
     <header className="header">
       <div className="container-fluid">
         <div className="row">
           <div className="col-xl-3 col-lg-2">
             <div className="header__logo">
-              <Link to="/"><img width="200px" height="70px" src="img/logos/ApexLogo.png" alt="" /></Link>
+              <Link to="/home">
+                <img width="200px" height="70px" src="img/logos/apex.png" alt="" />
+              </Link>
             </div>
           </div>
           <div className="col-xl-6 col-lg-7">
             <nav className="header__menu">
               <ul>
                 <li><Link to="/home">Home</Link></li>
-                <li><Link to="#">Games</Link></li>
-                <li><Link to="#">Videos</Link></li>
-                <li><Link to="#">Courses</Link></li>
-                <li><Link to="#">Contact</Link></li>
+                <li className="dropdown">
+                  <Link to="#">Courses</Link>
+                  <ul className="dropdown-menu">
+                    {courses.map(course => (
+                      <li key={course.id} className="dropdown-item">
+                        <Link to={`/courses/${course.id}`}>{course.title}</Link>
+                      </li>
+                    ))}
+                  </ul>
+                </li>
+                <li><Link to="#">subscription</Link></li>
+                <li><Link to="#">About us</Link></li>
               </ul>
             </nav>
           </div>
@@ -38,6 +64,6 @@ const Header = () => {
       </div>
     </header>
   );
-}
+};
 
 export default Header;
