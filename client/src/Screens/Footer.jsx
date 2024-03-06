@@ -6,19 +6,17 @@ export default function Footer() {
     <div>
       <hr></hr>
       <footer className="footer">
-      <div className="container">
+      <div className="container-fluid">
         <div className="row">
           <div className="col-lg-5 col-md-6 col-sm-7">
             <div className="footer__about">
               <div className="footer__logo">
-                <Link to="/">
-                  <img width="200px" src="../logo.jpeg" alt="" />
+                <Link to="/home">
+                  <img width="100px" src="img/logos/apex.png" alt="" />
                 </Link>
               </div>
               <p>
               Making educational experiences better for everyone.The Leader in Educational Games for Kids!
-
-
               </p>
               
             </div>
@@ -55,41 +53,44 @@ export default function Footer() {
 	                   <li className="icon-font-school">Main: 519-542-7751</li>
 	                   <li className="icon-font-location">1457 London Road, Sarnia, ON, N7S 6K4</li>
                    </ul>
-                   <div className="footer__social mt-4">
-                <Link
-                  target="_blank"
-                  to="#"
-                >
-                <img width="40"  src="https://img.icons8.com/fluency/48/facebook-new.png" alt="facebook-new"/>               
-                </Link>
-                <Link
-                  target="_blank"
-                  to="#"
-                >
-                 <img width="40"  src="https://img.icons8.com/fluency/48/twitterx--v1.png" alt="twitterx--v1"/>
-                </Link>
-                <Link
-                  target="_blank"
-                  to="#"
-                >
-                 <img width="40"  src="https://img.icons8.com/fluency/48/youtube-play.png" alt="youtube-play"/>
-                </Link>
-                <Link
-                  target="_blank"
-                  to="#"
-                >
-                 <img width="40"  src="https://img.icons8.com/fluency/48/instagram-new.png" alt="instagram-new"/>
-                </Link>
-                <Link
-                  target="_blank"
-                  to="#"
-                >
-                <img width="40"  src="https://img.icons8.com/fluency/48/pinterest.png" alt="pinterest"/>                </Link>
-              </div>
-                </div>
-                
+              
             </div>
+                
+          </div>
         
+        </div>
+        <div className="row">
+          <div className="footer__social mt-4">
+            <Link
+              target="_blank"
+              to="#"
+            >
+            <img width="40"  src="https://img.icons8.com/fluency/48/facebook-new.png" alt="facebook-new"/>               
+            </Link>
+            <Link
+              target="_blank"
+              to="#"
+            >
+              <img width="40"  src="https://img.icons8.com/fluency/48/twitterx--v1.png" alt="twitterx--v1"/>
+            </Link>
+            <Link
+              target="_blank"
+              to="#"
+            >
+              <img width="40"  src="https://img.icons8.com/fluency/48/youtube-play.png" alt="youtube-play"/>
+            </Link>
+            <Link
+              target="_blank"
+              to="#"
+            >
+              <img width="40"  src="https://img.icons8.com/fluency/48/instagram-new.png" alt="instagram-new"/>
+            </Link>
+            <Link
+              target="_blank"
+              to="#"
+            >
+            <img width="40"  src="https://img.icons8.com/fluency/48/pinterest.png" alt="pinterest"/>                </Link>
+          </div>
         </div>
         <div className="row">
           <div className="col-lg-12">

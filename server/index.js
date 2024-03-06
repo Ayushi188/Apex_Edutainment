@@ -3,9 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
-
 const UserModel = require('./models/User');
-
+const Course = require('./models/Course'); 
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -63,6 +62,15 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.get('/api/courses', async (req, res) => {
+  try {
+    const courses = await Course.find({}); 
+    res.json(courses);
+  } catch (error) {
+    console.error('Error fetching courses from MongoDB:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 app.listen(3001, () => {
   console.log('Server is running');
 });

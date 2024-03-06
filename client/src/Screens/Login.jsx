@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../assets/style.css';
 
@@ -11,6 +11,7 @@ const Login = () => {
 
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const navigate = useNavigate(); //navigate to home page
 
   const handleInputChange = (e) => {
     setFormData({
@@ -32,7 +33,10 @@ const Login = () => {
       const response = await axios.post('http://localhost:3001/login', formData);
       if (response.status === 200) {
         console.log('User logged in successfully');
-        // Handle successful login (e.g., redirect to dashboard)
+        setSuccessMessage('Logged in successfully');
+        
+        navigate('/home'); 
+        
       } else {
         setError('Invalid email or password');
         setSuccessMessage('');
@@ -52,7 +56,7 @@ const Login = () => {
             <div className="card-body">
               <div className="row">
                 <div className="col-md-6 d-flex justify-content-center align-items-center">
-                  <img src="img/login1.jpeg" style={{ width: '650px',transform: 'scale(1.2)' }} alt="Login" className="img-fluid" />
+                  <img src="img/login1.jpeg" style={{ width: '650px',transform: 'scale(1.1)' }} alt="Login" className="img-fluid" />
                 </div>
                 <div className="col-md-6 text-center">
                   <h4 className="card-title mb-4 mt-5 txt-login-signup" >Login</h4>
