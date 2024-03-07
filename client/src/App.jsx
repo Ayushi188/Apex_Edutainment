@@ -12,6 +12,7 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Login from './Screens/Login';
 import Home from './Screens/Home';
+import Dashboard from './Screens/Dashboard';
 
 
 function App() {
@@ -23,9 +24,11 @@ function App() {
         <Router>
           <div>
             <Routes>
+                <Route path="/" element={<Home />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/dashboard" element={<Dashboard />} />
             </Routes>
           </div> 
         </Router>   
