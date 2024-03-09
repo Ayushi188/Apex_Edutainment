@@ -38,8 +38,8 @@ const Header = () => {
                   <Link to="#">Courses</Link>
                   <ul className="dropdown-menu">
                     {courses.map(course => (
-                      <li key={course.id} className="dropdown-item">
-                        <Link to={`/courses/${course.id}`}>{course.title}</Link>
+                      <li key={course.courseId} className="dropdown-item">
+                        <Link to={`/courses/${course.courseId}`}>{course.name}</Link>
                       </li>
                     ))}
                   </ul>

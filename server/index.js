@@ -3,6 +3,8 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
 const UserModel = require('./models/User');
 const Course = require('./models/Course'); 
 const app = express();
@@ -10,6 +12,17 @@ app.use(cors());
 app.use(express.json());
 
 mongoose.connect('mongodb://127.0.0.1:27017/Apex_Edutainment');
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
 
 app.post('/register', async (req, res) => {
   try {
@@ -68,6 +81,21 @@ app.get('/api/courses', async (req, res) => {
     res.json(courses);
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+app.post('/api/courses', upload.single('image'), async (req, res) => {
+  try {
+    const { courseId, name, description, duration } = req.body;
+    const imagePath = req.file.path;
+    const course = new Course({ courseId, name, description, duration, imagePath });
+    await course.save();
+    //res.status(201).send(course);
+    res.status(201).json({ success: true, message: 'Course added successfully' });
+
+  } catch (error) {
+    //res.status(400).send(error);
+    console.error('Error adding course:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
