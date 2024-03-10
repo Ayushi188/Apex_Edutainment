@@ -135,3 +135,27 @@ form{
 	width: 100%;
   }
     /*Video section*/
+
+
+	/* css for course enrollment page  */
+
+	.courseEnrollTitle{
+		font-family:Georgia, 'Times New Roman', Times, serif;
+		font-size: 2.5rem;
+		color: #e55858;
+	}
+	.courseEnrollDesc{
+		font-family:Georgia, 'Times New Roman', Times, serif;
+		font-size: larger;
+		color: #343a40;
+	}
+	.student-enrollment {
+		text-align: center;
+		color: #336699; /* Change color as needed */
+		font-family:Georgia, 'Times New Roman', Times, serif; /* Change font family as needed */
+		font-size: 40px; /* Optionally change font size */
+		font-weight: bold; /* Optionally make the text bold */
+	  }
+	  
+
+	
