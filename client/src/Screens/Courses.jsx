@@ -4,6 +4,7 @@ import VideoSection from './VideoSection';
 import React, { useState } from "react";
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import axios from 'axios';
+import Footer from './Footer';
 
 const CoursePage = () => {
   const [courses, setCourses] = useState([
@@ -20,6 +21,7 @@ const CoursePage = () => {
       description: "In this course, you will delve into the art of word pronunciation, master spellings, and refine your sentence formation. Unlock the keys to effective communication and boost your confidence in English language proficiency.",
     },
   ]);
+  
   const [showForm, setShowForm] = useState(false);
   const [courseId, setCourseId] = useState('');
   const [name, setName] = useState('');

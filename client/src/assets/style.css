@@ -112,7 +112,7 @@ form{
 }
 
 .btn-success.active {
-	background-color: #28a745; /* Brighter green */
+	background-color: #22c822; /* Brighter green */
 	box-shadow: 0 0 10px #fff; /* Green shadow */
   }
   
@@ -183,7 +183,6 @@ form{
 	.add-new-course-button {
 	background-color: #38a0d1;
 	margin-bottom: 20px;
-	color:#fff;
 	}
 
 	.add-new-course-wrapper {
