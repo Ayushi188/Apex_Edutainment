@@ -35,7 +35,10 @@ const Login = () => {
         console.log('User logged in successfully');
         setSuccessMessage('Logged in successfully');
         
-        navigate('/home'); 
+        const { token } = response.data;
+        localStorage.setItem('token', token);
+
+        navigate('/dashboard'); 
         
       } else {
         setError('Invalid email or password');

@@ -10,7 +10,7 @@ const UserSchema = new mongoose.Schema({
   age: Number,
   parentEmail: String,
   school: String,
-
+  role:String,
 })
 
 UserSchema.pre('save', async function(next) {
