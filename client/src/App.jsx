@@ -13,6 +13,8 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Login from './Screens/Login';
 import Home from './Screens/Home';
 import Courses from './Screens/Courses';
+import Dashboard from './Screens/Dashboard';
+
 
 function App() {
   const [count, setCount] = useState(0)
@@ -23,10 +25,12 @@ function App() {
         <Router>
           <div>
             <Routes>
+                <Route path="/" element={<Home />} />
                 <Route path="/home" element={<Home />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/courses" element={<Courses />} />
+                <Route path="/dashboard" element={<Dashboard />} />
             </Routes>
           </div> 
         </Router>   

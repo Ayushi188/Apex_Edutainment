@@ -65,7 +65,7 @@ app.post('/login', async (req, res) => {
     }
 
     // Generate JWT token
-    const token = jwt.sign({ userId: user._id, email: user.email }, 'apex_secret_key', { expiresIn: '1h' });
+    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, 'apex_secret_key', { expiresIn: '1h' });
 
     // Send token as a response
     res.json({ token });
@@ -101,4 +101,31 @@ app.post('/api/courses', upload.single('image'), async (req, res) => {
 });
 app.listen(3001, () => {
   console.log('Server is running');
+});
+
+
+// Middleware function to verify JWT token
+const verifyToken = (req, res, next) => {
+  // Get token from headers
+  const token = req.headers.authorization;
+
+  // Check if token is provided
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  // Verify token
+  jwt.verify(token.replace('Bearer ', ''), 'apex_secret_key', (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
+    req.user = decoded;
+    next();
+  });
+};
+
+// Protected route
+app.get('/api/user', verifyToken, (req, res) => {
+  // If token is valid, req.user will contain decoded token payload
+  res.json({ user: req.user });
 });
