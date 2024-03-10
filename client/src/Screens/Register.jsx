@@ -14,11 +14,12 @@ const SignUp = () => {
     age: "",
     parentEmail: "",
     school: "",
+    role:"teacher",
   });
 
   const [errors, setErrors] = useState({});
   const [successMessage, setSuccessMessage] = useState("");
-  const [registrationType, setRegistrationType] = useState("teacher");
+  const [registrationRole, setRegistrationRole] = useState("teacher");
   const [showModal, setShowModal] = useState(false);
 
   const handleInputChange = (e) => {
@@ -28,9 +29,9 @@ const SignUp = () => {
     });
   };
 
-  const handleToggleClick = (type) => {
-    setRegistrationType(type);
-    formData.reg_type = type;
+  const handleToggleClick = (role) => {
+    setRegistrationRole(role);
+    formData.role = role;
     if (type === "teacher") {
       document.getElementById("teacherBtn").classList.remove("btn-success");
       document.getElementById("teacherBtn").classList.add("btn-dark");
@@ -85,7 +86,7 @@ const SignUp = () => {
           age: "",
           parentEmail: "",
           school: "",
-          reg_type: "teacher",
+          role: "teacher",
         });
       } else if (response.status === 409) {
         setErrors({ user: "User already exists" });
@@ -148,26 +149,26 @@ const SignUp = () => {
 
     // Validate Phone Number
     if (!formData.parentEmail.trim()) {
-      if (formData.reg_type === "teacher") {
+      if (formData.role === "teacher") {
         errors.parentEmail = "Kindly Enter Phone No";
       } else {
         errors.parentEmail = "Kindly Enter Parent/Guardian Email";
       }
     } else if (
       !/^\d{10}$/.test(formData.parentEmail) &&
-      formData.reg_type === "teacher"
+      formData.role === "teacher"
     ) {
       errors.parentEmail = "Kindly Enter a valid 10-digit phone number";
     } else if (
       !/^\S+@\S+\.\S+$/.test(formData.parentEmail) &&
-      formData.reg_type === "student"
+      formData.role === "student"
     ) {
       errors.parentEmail = "Kindly Enter a valid email address";
     }
 
     // Validate Subject
     // if (!formData.school.trim()) {
-    //   if (formData.reg_type === "teacher")
+    //   if (formData.role === "teacher")
     //     errors.school = "Kindly Enter Subject";
     //   else errors.school = "Kindly Enter Class";
     // }
@@ -197,7 +198,7 @@ const SignUp = () => {
                       id="teacherBtn"
                       type="button"
                       className={`btn ${
-                        registrationType === "teacher"
+                        registrationRole === "teacher"
                           ? "btn-success active"
                           : "btn-dark active"
                       }`}
@@ -209,7 +210,7 @@ const SignUp = () => {
                       id="studentBtn"
                       type="button"
                       className={`btn ${
-                        registrationType === "student"
+                        registrationRole === "student"
                           ? "btn-success active"
                           : "btn-dark active"
                       }`}
@@ -303,7 +304,7 @@ const SignUp = () => {
                             value={formData.age}
                           />
                         </div>
-                        {registrationType !== "teacher" ? (
+                        {registrationRole !== "teacher" ? (
                           <div className="">
                             <input
                               type="email"
@@ -327,7 +328,7 @@ const SignUp = () => {
                           </div>
                         )}
 
-                        {registrationType !== "teacher" ? (
+                        {registrationRole !== "teacher" ? (
                           <div className="">
                             <input
                               type="text"
