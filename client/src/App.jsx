@@ -13,6 +13,7 @@ import 'bootstrap/dist/css/bootstrap.min.css';
 import Login from './Screens/Login';
 import Home from './Screens/Home';
 import Dashboard from './Screens/Dashboard';
+import StudentEnrollment from './Screens/StudentEnrollement';
 
 
 function App() {
@@ -29,6 +30,7 @@ function App() {
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/student-enrollment" element={<StudentEnrollment />} />
             </Routes>
           </div> 
         </Router>   

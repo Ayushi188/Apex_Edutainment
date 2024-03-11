@@ -5,9 +5,14 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const UserModel = require('./models/User');
 const Course = require('./models/Course'); 
+const StudentEnrollment = require('./models/StudentEnrollment'); 
 const app = express();
 app.use(cors());
 app.use(express.json());
+const path = require('path');
+
+app.use(express.static(path.join(__dirname, 'uploads')));
+
 
 mongoose.connect('mongodb://127.0.0.1:27017/Apex_Edutainment');
 
@@ -62,9 +67,26 @@ app.post('/login', async (req, res) => {
   }
 });
 
+app.post('/api/enroll', async (req, res) => {
+  try {
+    const { userId, courseId } = req.body;
+    const enrollment = new StudentEnrollment({
+      userId,
+      courseId,
+      enrollmentDate: new Date()
+    });
+    await enrollment.save();
+    res.status(200).json({ message: 'Enrollment successful' });
+  } catch (error) {
+    console.error('Error enrolling in courses:', error);
+    res.status(500).json({ error: 'Failed to enroll in courses. Please try again later.' });
+  }
+});
+
+
 app.get('/api/courses', async (req, res) => {
   try {
-    const courses = await Course.find({}); 
+    const courses = await Course.find();
     res.json(courses);
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
@@ -74,6 +96,34 @@ app.get('/api/courses', async (req, res) => {
 app.listen(3001, () => {
   console.log('Server is running');
 });
+
+app.get('/api/student-enrollments/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Fetch student enrollments for the specified user
+    const studentEnrollments = await StudentEnrollment.find({ userId });
+
+    res.json(studentEnrollments);
+  } catch (error) {
+    console.error('Error fetching student enrollments:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/api/course-enrollments/:userId/:courseId', async (req, res) => {
+  try {
+    const { userId, courseId } = req.params;
+    await StudentEnrollment.deleteOne({ userId, courseId });
+    res.status(200).json({ message: 'Enrollment removed successfully' });
+  } catch (error) {
+    console.error('Error deleting enrollment:', error);
+    res.status(500).json({ error: 'Failed to delete enrollment. Please try again later.' });
+  }
+});
+
+
+
 
 
 // Middleware function to verify JWT token
