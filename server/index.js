@@ -10,6 +10,7 @@ const Course = require('./models/Course');
 const app = express();
 app.use(cors());
 app.use(express.json());
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 mongoose.connect('mongodb://127.0.0.1:27017/Apex_Edutainment');
 // Multer configuration for file uploads

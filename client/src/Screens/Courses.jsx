@@ -1,26 +1,35 @@
 import '../assets/style.css';
 import Navbar from './Navbar';
 import VideoSection from './VideoSection';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import axios from 'axios';
 import Footer from './Footer';
 
 const CoursePage = () => {
-  const [courses, setCourses] = useState([
-    {
-      id: 1,
-      title: "Math",
-      image: "img/Maths.png", 
-      description: "This course is designed to strengthen your skills, covering essential concepts such as counting, addition, subtraction, and division. Join us on a adventure to sharpen your problem-solving abilities and cultivate a love for numbers.",
-    },
-    {
-      id: 2,
-      title: "English",
-      image: "img/English.png", 
-      description: "In this course, you will delve into the art of word pronunciation, master spellings, and refine your sentence formation. Unlock the keys to effective communication and boost your confidence in English language proficiency.",
-    },
-  ]);
+  const [courses, setCourses] = useState(null);
+
+  useEffect(() => {
+    // Function to fetch course data when the component mounts
+    const fetchCourses = async () => {
+      try {
+        const response = await axios.get('http://localhost:3001/api/courses', {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`,
+          },
+        });
+        setCourses(response.data);
+        console.log('courses fetched:');
+      } catch (error) {
+        // Handle error, e.g., token expired or invalid
+        console.error('Error fetching courses:', error);
+        setCourses(null);
+      }
+    };
+
+    fetchCourses();
+  }, []);
+
   
   const [showForm, setShowForm] = useState(false);
   const [courseId, setCourseId] = useState('');
@@ -84,6 +93,7 @@ const CoursePage = () => {
       console.log(response.data);
       setShowForm(false);
       resetForm();
+      window.location.reload(false);
     } catch (error) {
       console.error('Error adding course:', error);
     }
@@ -108,10 +118,10 @@ const CoursePage = () => {
           </button>
         </div>
         <div className="course-grid">
-          {courses.map((course) => (
+          {courses && courses.map((course) => (
             <div className="course-card" key={course.id}>
-              <img src={course.image} alt={course.title} />
-              <h3>{course.title}</h3>
+              <img src={`http://localhost:3001/${course.imagePath.replace(/\\/g, '/')}`} alt={course.name} />
+              <h3>{course.name}</h3>
               <p>{course.description}</p>
               <button>View Course</button>
             </div>
