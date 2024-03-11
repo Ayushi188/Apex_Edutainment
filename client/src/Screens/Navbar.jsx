@@ -26,7 +26,7 @@ const Header = () => {
           <div className="col-xl-3 col-lg-2">
             <div className="header__logo">
               <Link to="/home">
-                <img width="200px" height="70px" src="img/logos/apex.png" alt="" />
+                <img width="200px" height="70px" src="img/logos/logo.png" alt="" />
               </Link>
             </div>
           </div>
@@ -38,8 +38,8 @@ const Header = () => {
                   <Link to="#">Courses</Link>
                   <ul className="dropdown-menu">
                     {courses.map(course => (
-                      <li key={course.id} className="dropdown-item">
-                        <Link to={`/courses/${course.id}`}>{course.title}</Link>
+                      <li key={course.courseId} className="dropdown-item">
+                        <Link to={`/courses/${course.courseId}`}>{course.name}</Link>
                       </li>
                     ))}
                   </ul>
@@ -52,8 +52,8 @@ const Header = () => {
           <div className="col-lg-3">
             <div className="header__right">
               <div id="LoginUser" className="header__right__auth">
-                <Link to="/login">Login</Link>
-                <Link to="/register">Register</Link>
+               <button className="login_register_button"><Link to="/login" style={{ color: 'white' }}>Login</Link></button> 
+                <button className="login_register_button"><Link to="/register" style={{ color: 'white' }}>Register</Link></button>
               </div>
             </div>
           </div>
