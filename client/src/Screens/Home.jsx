@@ -1,9 +1,9 @@
-import React from 'react';
+import React ,{ useState } from 'react';
 import { Link } from 'react-router-dom';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import VideoSection from './VideoSection';
-import '../assets/style.css'; 
+import '../assets/style.css';
 
 export default function Home() {
   return (   
