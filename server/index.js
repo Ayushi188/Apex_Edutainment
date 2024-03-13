@@ -3,13 +3,29 @@ const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
 const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
 const UserModel = require('./models/User');
 const Course = require('./models/Course'); 
+const StudentEnrollment = require('./models/StudentEnrollment'); 
 const app = express();
 app.use(cors());
 app.use(express.json());
+//app.use(express.static(path.join(__dirname, 'uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 mongoose.connect('mongodb://127.0.0.1:27017/Apex_Edutainment');
+// Multer configuration for file uploads
+const storage = multer.diskStorage({
+  destination: function (req, file, cb) {
+    cb(null, 'uploads/');
+  },
+  filename: function (req, file, cb) {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+const upload = multer({ storage: storage });
 
 app.post('/register', async (req, res) => {
   try {
@@ -51,30 +67,20 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    payload = {
+      userId: user._id, email: user.email, role: user.role, name:user.firstName
+    };
+
     // Generate JWT token
-    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, 'apex_secret_key', { expiresIn: '1h' });
+    const token = jwt.sign(payload, 'apex_secret_key', { expiresIn: '1h' });
 
     // Send token as a response
-    res.json({ token });
+    res.json({ token, payload});
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
 });
-
-app.get('/api/courses', async (req, res) => {
-  try {
-    const courses = await Course.find({}); 
-    res.json(courses);
-  } catch (error) {
-    console.error('Error fetching courses from MongoDB:', error);
-    res.status(500).json({ error: 'Internal server error' });
-  }
-});
-app.listen(3001, () => {
-  console.log('Server is running');
-});
-
 
 // Middleware function to verify JWT token
 const verifyToken = (req, res, next) => {
@@ -101,3 +107,102 @@ app.get('/api/user', verifyToken, (req, res) => {
   // If token is valid, req.user will contain decoded token payload
   res.json({ user: req.user });
 });
+
+app.post('/api/enroll', async (req, res) => {
+  try {
+    const { userId, courseId } = req.body;
+    const enrollment = new StudentEnrollment({
+      userId,
+      courseId,
+      enrollmentDate: new Date()
+    });
+    await enrollment.save();
+    res.status(200).json({ message: 'Enrollment successful' });
+  } catch (error) {
+    console.error('Error enrolling in courses:', error);
+    res.status(500).json({ error: 'Failed to enroll in courses. Please try again later.' });
+  }
+});
+
+
+app.get('/api/courses',verifyToken, async (req, res) => {
+  try {
+    var courses = [];
+    const userId = req.user.userId;
+    if(req.user.role === "teacher")
+    {
+      courses = await Course.find({ instructor: userId });
+    }
+    else{
+      const studentEnrollments = await StudentEnrollment.find({ userId });
+      for (const enrollment of studentEnrollments) {
+        console.log(enrollment.courseId);
+        const course = await Course.findOne({ courseId: enrollment.courseId });
+        if (course) {
+          courses.push(course);
+        }
+      }
+      // studentEnrollments.forEach(enrollment => {
+      //   console.log(enrollment.courseId);
+      //   var course = await Course.findOne({ courseId: enrollment.courseId })
+      //   courses =[...courses, course ]
+      // });
+    }
+    //console.log(courses);
+    //console.log(JSON.stringify(courses));
+    res.json(JSON.parse(JSON.stringify(courses)));
+  } catch (error) {
+    console.error('Error fetching courses from MongoDB:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+app.post('/api/courses', upload.single('image'), async (req, res) => {
+  try {
+    const { courseId, name, description, duration, instructor } = req.body;
+    const imagePath = req.file.path;
+    const course = new Course({ courseId, name, description, duration, instructor, imagePath });
+    await course.save();
+    //res.status(201).send(course);
+    res.status(201).json({ success: true, message: 'Course added successfully' });
+
+  } catch (error) {
+    //res.status(400).send(error);
+    console.error('Error adding course:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+app.listen(3001, () => {
+  console.log('Server is running');
+});
+
+
+app.get('/api/student-enrollments/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+
+    // Fetch student enrollments for the specified user
+    const studentEnrollments = await StudentEnrollment.find({ userId });
+
+    res.json(studentEnrollments);
+  } catch (error) {
+    console.error('Error fetching student enrollments:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.delete('/api/course-enrollments/:userId/:courseId', async (req, res) => {
+  try {
+    const { userId, courseId } = req.params;
+    await StudentEnrollment.deleteOne({ userId, courseId });
+    res.status(200).json({ message: 'Enrollment removed successfully' });
+  } catch (error) {
+    console.error('Error deleting enrollment:', error);
+    res.status(500).json({ error: 'Failed to delete enrollment. Please try again later.' });
+  }
+});
+
+
+
+
+
+

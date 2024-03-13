@@ -37,8 +37,9 @@ const Login = () => {
         
         const { token } = response.data;
         localStorage.setItem('token', token);
-
-        navigate('/dashboard'); 
+        const { payload } = response.data;
+        
+        payload.role === "teacher" ? navigate('/courses') : navigate('/dashboard')
         
       } else {
         setError('Invalid email or password');

@@ -12,7 +12,9 @@ import 'sweetalert2/dist/sweetalert2.min.css';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import Login from './Screens/Login';
 import Home from './Screens/Home';
+import Courses from './Screens/Courses';
 import Dashboard from './Screens/Dashboard';
+import StudentEnrollment from './Screens/StudentEnrollement';
 
 
 function App() {
@@ -28,7 +30,9 @@ function App() {
                 <Route path="/home" element={<Home />} />
                 <Route path="/register" element={<Register />} />
                 <Route path="/login" element={<Login />} />
+                <Route path="/courses" element={<Courses />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/student-enrollment" element={<StudentEnrollment />} />
             </Routes>
           </div> 
         </Router>   
