@@ -67,15 +67,45 @@ app.post('/login', async (req, res) => {
       return res.status(401).json({ message: 'Invalid email or password' });
     }
 
+    payload = {
+      userId: user._id, email: user.email, role: user.role, name:user.firstName
+    };
+
     // Generate JWT token
-    const token = jwt.sign({ userId: user._id, email: user.email, role: user.role }, 'apex_secret_key', { expiresIn: '1h' });
+    const token = jwt.sign(payload, 'apex_secret_key', { expiresIn: '1h' });
 
     // Send token as a response
-    res.json({ token });
+    res.json({ token, payload});
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Internal server error' });
   }
+});
+
+// Middleware function to verify JWT token
+const verifyToken = (req, res, next) => {
+  // Get token from headers
+  const token = req.headers.authorization;
+
+  // Check if token is provided
+  if (!token) {
+    return res.status(401).json({ message: 'No token provided' });
+  }
+
+  // Verify token
+  jwt.verify(token.replace('Bearer ', ''), 'apex_secret_key', (err, decoded) => {
+    if (err) {
+      return res.status(403).json({ message: 'Failed to authenticate token' });
+    }
+    req.user = decoded;
+    next();
+  });
+};
+
+// Protected route
+app.get('/api/user', verifyToken, (req, res) => {
+  // If token is valid, req.user will contain decoded token payload
+  res.json({ user: req.user });
 });
 
 app.post('/api/enroll', async (req, res) => {
@@ -95,10 +125,32 @@ app.post('/api/enroll', async (req, res) => {
 });
 
 
-app.get('/api/courses', async (req, res) => {
+app.get('/api/courses',verifyToken, async (req, res) => {
   try {
-    const courses = await Course.find();
-    res.json(courses);
+    var courses = [];
+    const userId = req.user.userId;
+    if(req.user.role === "teacher")
+    {
+      courses = await Course.find({ instructor: userId });
+    }
+    else{
+      const studentEnrollments = await StudentEnrollment.find({ userId });
+      for (const enrollment of studentEnrollments) {
+        console.log(enrollment.courseId);
+        const course = await Course.findOne({ courseId: enrollment.courseId });
+        if (course) {
+          courses.push(course);
+        }
+      }
+      // studentEnrollments.forEach(enrollment => {
+      //   console.log(enrollment.courseId);
+      //   var course = await Course.findOne({ courseId: enrollment.courseId })
+      //   courses =[...courses, course ]
+      // });
+    }
+    //console.log(courses);
+    //console.log(JSON.stringify(courses));
+    res.json(JSON.parse(JSON.stringify(courses)));
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
     res.status(500).json({ error: 'Internal server error' });
@@ -106,9 +158,9 @@ app.get('/api/courses', async (req, res) => {
 });
 app.post('/api/courses', upload.single('image'), async (req, res) => {
   try {
-    const { courseId, name, description, duration } = req.body;
+    const { courseId, name, description, duration, instructor } = req.body;
     const imagePath = req.file.path;
-    const course = new Course({ courseId, name, description, duration, imagePath });
+    const course = new Course({ courseId, name, description, duration, instructor, imagePath });
     await course.save();
     //res.status(201).send(course);
     res.status(201).json({ success: true, message: 'Course added successfully' });
@@ -153,28 +205,4 @@ app.delete('/api/course-enrollments/:userId/:courseId', async (req, res) => {
 
 
 
-// Middleware function to verify JWT token
-const verifyToken = (req, res, next) => {
-  // Get token from headers
-  const token = req.headers.authorization;
 
-  // Check if token is provided
-  if (!token) {
-    return res.status(401).json({ message: 'No token provided' });
-  }
-
-  // Verify token
-  jwt.verify(token.replace('Bearer ', ''), 'apex_secret_key', (err, decoded) => {
-    if (err) {
-      return res.status(403).json({ message: 'Failed to authenticate token' });
-    }
-    req.user = decoded;
-    next();
-  });
-};
-
-// Protected route
-app.get('/api/user', verifyToken, (req, res) => {
-  // If token is valid, req.user will contain decoded token payload
-  res.json({ user: req.user });
-});

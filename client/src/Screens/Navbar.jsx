@@ -1,22 +1,16 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import '../assets/Navbar.css';
 
-const Header = () => {
-  const [courses, setCourses] = useState([]);
+const Header = (props) => {
+  const courses = props.courses;
+  const user = props.user;
+  
 
-  useEffect(() => {
-    fetchCourses();
-  }, []);
-
-  const fetchCourses = async () => {
-    try {
-      const response = await axios.get('http://localhost:3001/api/courses');
-      setCourses(response.data);
-    } catch (error) {
-      console.error('Error fetching courses:', error);
-    }
+  const handleLogout = () => {
+    // Clear the token from localStorage
+    localStorage.removeItem('token');
   };
 
   return (
@@ -35,9 +29,9 @@ const Header = () => {
               <ul>
                 <li><Link to="/home">Home</Link></li>
                 <li className="dropdown">
-                  <Link to="#">Courses</Link>
+                  <Link to="/courses">Courses</Link>
                   <ul className="dropdown-menu">
-                    {courses.map(course => (
+                    {courses && courses.map(course => (
                       <li key={course.courseId} className="dropdown-item">
                         <Link to={`/courses/${course.courseId}`}>{course.name}</Link>
                       </li>
@@ -51,10 +45,17 @@ const Header = () => {
           </div>
           <div className="col-lg-3">
             <div className="header__right">
+            {!user ? (  
               <div id="LoginUser" className="header__right__auth">
-               <button className="login_register_button"><Link to="/login" style={{ color: 'white' }}>Login</Link></button> 
+                <button className="login_register_button"><Link to="/login" style={{ color: 'white' }}>Login</Link></button> 
                 <button className="login_register_button"><Link to="/register" style={{ color: 'white' }}>Register</Link></button>
               </div>
+              ):user && (
+              <div id="LoginUser" className="header__right__auth">
+                <button className="login_register_button"><Link to="#" style={{ color: 'white' }}>{user.name}</Link></button> 
+                <button className="login_register_button" onClick={handleLogout}><Link to="/login" style={{ color: 'white' }}>Logout</Link></button>
+              </div>
+              )}
             </div>
           </div>
         </div>

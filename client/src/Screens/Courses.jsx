@@ -3,32 +3,52 @@ import Navbar from './Navbar';
 import VideoSection from './VideoSection';
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
+import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Footer from './Footer';
 
 const CoursePage = () => {
   const [courses, setCourses] = useState(null);
+  const [user, setUser] = useState(null);
+  const navigate = useNavigate();
 
   useEffect(() => {
-    // Function to fetch course data when the component mounts
-    const fetchCourses = async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/api/courses', {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`,
-          },
-        });
-        setCourses(response.data);
-        console.log('courses fetched:');
-      } catch (error) {
-        // Handle error, e.g., token expired or invalid
-        console.error('Error fetching courses:', error);
-        setCourses(null);
-      }
-    };
-
+    // Functions to fetch course and user data
+    fetchUser();
     fetchCourses();
   }, []);
+
+  const fetchUser = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/api/user', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setUser(response.data.user);
+      console.log('user fetched:');
+    } catch (error) {
+      navigate('/login');
+      console.error('Error fetching user:', error);
+      setUser(null);
+    }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/api/courses', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setCourses(response.data);
+      console.log('courses fetched:');
+    } catch (error) {
+      // Handle error, e.g., token expired or invalid
+      console.error('Error fetching courses:', error);
+      setCourses(null);
+    }
+  };
 
   
   const [showForm, setShowForm] = useState(false);
@@ -84,6 +104,7 @@ const CoursePage = () => {
       formData.append('description', description);
       formData.append('duration', durationInMinutes);
       formData.append('image', imageFile);
+      formData.append('instructor', user.userId)
       
       const response = await axios.post('http://localhost:3001/api/courses', formData, {
         headers: {
@@ -106,7 +127,10 @@ const CoursePage = () => {
   return (
     <div className="container-fluid">
       <div className="course-page">
-        <Navbar /> 
+        {courses && user &&
+          <Navbar courses={courses} user={user}/> 
+        }
+        
         <div className="course-welcome">Hi, Welcome</div>
         <VideoSection/>
         <div className="course-header">Courses</div>
@@ -127,6 +151,7 @@ const CoursePage = () => {
             </div>
           ))}
         </div>
+        <Footer />
       </div>
       <div>
         <Modal show={showForm} onHide={() => { setShowForm(false); resetForm(); }}>

@@ -6,6 +6,7 @@ const courseSchema = new mongoose.Schema({
   name: { type: String, required: true },
   description: { type: String, required: true },
   duration: { type: Number, required: true },
+  instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
   imagePath: { type: String, required: false }
 });
 
