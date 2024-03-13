@@ -167,11 +167,11 @@ const SignUp = () => {
     }
 
     // Validate Subject
-    if (!formData.school.trim()) {
-      if (formData.role === "teacher")
-        errors.school = "Kindly Enter Subject";
-      else errors.school = "Kindly Enter Class";
-    }
+    // if (!formData.school.trim()) {
+    //   if (formData.role === "teacher")
+    //     errors.school = "Kindly Enter Subject";
+    //   else errors.school = "Kindly Enter Class";
+    // }
 
     return errors;
   };
@@ -331,7 +331,7 @@ const SignUp = () => {
                         {registrationRole !== "teacher" ? (
                           <div className="">
                             <input
-                              type="email"
+                              type="text"
                               className="form-control"
                               id="school"
                               placeholder="Enter Class"
