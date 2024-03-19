@@ -5,9 +5,12 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
+const nodemailer = require('nodemailer');
 const UserModel = require('./models/User');
 const Course = require('./models/Course'); 
-const StudentEnrollment = require('./models/StudentEnrollment'); 
+const FeedbackForm = require('./models/FeedbackForm'); 
+const StudentEnrollment = require('./models/StudentEnrollment');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -26,6 +29,14 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
+//nodemailer
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'hardeepdhami02@gmail.com',
+    pass: 'jozf wekv qlse vnuh' 
+  }
+});
 
 app.post('/register', async (req, res) => {
   try {
@@ -171,6 +182,44 @@ app.post('/api/courses', upload.single('image'), async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.post('/api/feedbackForm',upload.single('file'),async (req, res) => {
+  const { name, email, message } = req.body;
+  const file = req.file; 
+
+  try {
+    const newFeedbackForm = new FeedbackForm({
+      name,
+      email,
+      message,
+      file: file ? file.path : null
+
+    });
+
+    await newFeedbackForm.save();
+
+    const mailOptions = {
+      from: 'hardeepdhami02@gmail.com',
+      to: email,
+      subject: 'We have Received Your Query',
+      text: `Hello ${name},\n\nThank you for reaching out to us with your query. We have received it and want to assure you that your questions are important to us.\n\nOur team is currently reviewing your query and will provide you with a thorough response shortly. Please bear with us as we work to address your concerns.\n\nIn the meantime, if you have any additional information or urgent matters to discuss, feel free to reach out to us.\n\nThank you for choosing us to assist you with your query.\n\n\nBest regards,\nApex Team`
+    };
+
+    transporter.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
+
+    res.status(201).json({ message: 'Form submitted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 app.listen(3001, () => {
   console.log('Server is running');
 });

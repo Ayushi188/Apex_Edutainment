@@ -144,10 +144,12 @@ const CoursePage = () => {
         <div className="course-grid">
           {courses && courses.map((course) => (
             <div className="course-card" key={course.id}>
-              <img src={`http://localhost:3001/${course.imagePath.replace(/\\/g, '/')}`} alt={course.name} />
+              <img src={`http://localhost:3001/${course.imagePath.replace(/\\/g, '/')}`} alt={course.name}/>
               <h3>{course.name}</h3>
               <p>{course.description}</p>
-              <button>View Course</button>
+              <button>
+                <Link to="/coursecontent">View Course</Link>
+              </button>
             </div>
           ))}
         </div>
