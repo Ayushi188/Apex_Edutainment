@@ -1,0 +1,70 @@
+/*contact-starts*/
+.contact {
+    padding-top: 80px;
+    padding-bottom: 80px;
+}
+
+.contact__form h5 {
+    color: #111111;
+    font-size: 20px;
+    font-weight: 600;
+    text-transform: uppercase;
+    margin-bottom: 35px;
+}
+
+.contact__form form input {
+    height: 50px;
+    width: 100%;
+    padding-left: 20px;
+    font-size: 14px;
+    color: #444444;
+    border: 1px solid #e1e1e1;
+    border-radius: 10px;
+    margin-bottom: 20px;
+}
+
+.contact__form form input::placeholder,
+.contact__form form textarea::placeholder {
+    color: #444444;
+}
+
+.contact__form form textarea {
+    height: 130px;
+    width: 100%;
+    padding-left: 20px;
+    padding-top: 12px;
+    font-size: 14px;
+    color: #444444;
+    border: 1px solid #e1e1e1;
+    border-radius: 10px;
+    margin-bottom: 14px;
+    resize: none;
+}
+
+.contact__form form textarea::-webkit-input-placeholder,
+.contact__form form textarea::-moz-placeholder,
+.contact__form form textarea:-ms-input-placeholder,
+.contact__form form textarea::-ms-input-placeholder {
+    color: #444444;
+}
+
+.text-danger {
+    color: #dc3545;
+}
+
+.text-success {
+    color: #28a745;
+}
+
+Login.css me .btn{
+	transition: all .5s ease;
+	width: 100%;
+	border-radius: 30px;
+	font-weight: 600;
+	background-color: #fff;
+	border: 1px solid;
+	margin-top: 1.5em;
+	margin-bottom: 1em;
+}
+/*contact-ends*/
+
