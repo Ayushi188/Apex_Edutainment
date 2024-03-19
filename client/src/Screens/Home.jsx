@@ -1,14 +1,56 @@
-import React ,{ useState } from 'react';
+import React ,{ useState, useEffect} from 'react';
 import { Link } from 'react-router-dom';
+import axios from 'axios';
 import Navbar from './Navbar';
 import Footer from './Footer';
 import VideoSection from './VideoSection';
 import '../assets/style.css';
 
 export default function Home() {
+
+  const [user, setUser] = useState(null);
+  const [courses, setCourses] = useState(null);
+
+  useEffect(() => {
+    // Functions to fetch course and user data
+    fetchUser();
+    fetchCourses();
+  }, []);
+
+  const fetchUser = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/api/user', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setUser(response.data.user);
+      console.log('user fetched:');
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      setUser(null);
+    }
+  };
+
+  const fetchCourses = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/api/usercourses', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setCourses(response.data);
+      console.log('courses fetched:');
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      setCourses(null);
+    }
+  };
+
   return (   
     <div className="container-fluid">
-      <Navbar /> 
+      <Navbar courses={courses} user={user}/> 
       <VideoSection/>
       <div className="row">
         <div className="col-md-4 mb-4">
