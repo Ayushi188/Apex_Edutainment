@@ -40,7 +40,7 @@ const Header = (props) => {
                   </ul>
                 </li>
                 <li><Link to="#">subscription</Link></li>
-                <li><Link to="#">About us</Link></li>
+                <li><Link to="/about">About us</Link></li>
               </ul>
             </nav>
           </div>
