@@ -29,7 +29,7 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
-//nodemailer
+//nodemailer(gmail)
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
