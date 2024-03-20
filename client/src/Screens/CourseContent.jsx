@@ -7,19 +7,33 @@ import '../assets/CourseContentStyle.css';
 import { Container, Image, Button, Card } from 'react-bootstrap';
 import ReactPlayer from 'react-player';
 import 'bootstrap/dist/css/bootstrap.min.css';
-
+   
 const CourseContent = () => {
     const [courses, setCourses] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
+    const [userRole, setUserRole] = useState('');
 
     // Function to toggle collapse state
     const toggleCollapse = () => {
       setIsOpen(!isOpen);
     };
     useEffect(() => {
+      fetchUserRole();
       fetchCourses();
     }, []);
-  
+    const fetchUserRole = async () => {
+        try {
+            const response = await axios.get('http://localhost:3001/api/user/role', {
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+            setUserRole(response.data.role);
+        } catch (error) {
+            console.error('Error fetching user role:', error);
+        }
+    };
+
     const fetchCourses = async () => {
       try {
         const response = await axios.get('http://localhost:3001/api/courses', {
@@ -56,6 +70,10 @@ const CourseContent = () => {
                 ))}
             </Card>
         </Container> */}
+        {/* {userRole === 'teacher' && ( */}
+
+        
+
         <div className="inner-banner">
             <div className="container">
             <div className="row">
@@ -121,6 +139,7 @@ const CourseContent = () => {
                 </ul>
             </div>
             </div>
+          {userRole === '' && (
             <div className="card content-sec">
                 <div className="card-body">
                     <div className="row">
@@ -208,7 +227,88 @@ const CourseContent = () => {
                         </div>
                     </div>
                 </div>
+            </div>)}
+            {userRole === 'teacher' && (
+            <div className="card content-sec">
+            <div className="card-body">
+                <div className="row">
+                    <div className="col-sm-6">
+                        <h5 className="subs-title">Course Content</h5>
+                    </div>
+                    <div className="col-sm-6 text-sm-end">
+                        <h6>10 Lectures 10:56:11</h6>
+                    </div>
+                </div>
+                <div className="course-card">
+                    <h6 className="cou-title">
+                    <a
+                        className={`collapsed ${isOpen ? 'show' : ''}`}
+                        onClick={toggleCollapse}
+                        aria-expanded={isOpen ? 'true' : 'false'}
+                    >
+                        Quiz
+                    </a>
+                    </h6>
+                    <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
+                    <ul className="list-unstyled mb-0">
+                        <li>
+                            <Button variant="primary" className="custom-button">Add Quiz</Button>
+                        </li>
+                    </ul>
+                    </div>
+                </div>
+                <div className="course-card">
+                    <h6 className="cou-title">
+                    <a
+                        className={`collapsed ${isOpen ? 'show' : ''}`}
+                        onClick={toggleCollapse}
+                        aria-expanded={isOpen ? 'true' : 'false'}
+                    >
+                        Video Content
+                    </a>
+                    </h6>
+                    <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
+                    <ul>
+                        <li>
+                        <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Lecture1.1 Introduction to the Course</p>
+                        <div>
+                            <a href="javascript:void(0);">Watch Video 1</a>
+                        </div>
+                        </li>
+                        <li>
+                        <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Lecture1.2 Advance Level</p>
+                        <div>
+                            <a href="javascript:void(0);">Watch Video 2</a>
+                        </div>
+                        </li>
+                    </ul>
+                    </div>
+                </div>
+                <div className="course-card">
+                    <h6 className="cou-title">
+                    <a
+                        className={`collapsed ${isOpen ? 'show' : ''}`}
+                        onClick={toggleCollapse}
+                        aria-expanded={isOpen ? 'true' : 'false'}
+                    >
+                        Extra Material
+                    </a>
+                    </h6>
+                    <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
+                    <ul>
+                        <li>
+                        <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Extra content of this course</p>
+                        <div>
+                            <a href="javascript:void(0);">Read Here</a>
+                        </div>
+                        </li>
+                        
+                    </ul>
+                    </div>
+                </div>
             </div>
+        </div>
+        )}
             </div>
             <div className="col-lg-4">
             <div className="sidebar-sec">
