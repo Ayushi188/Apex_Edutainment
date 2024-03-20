@@ -9,9 +9,10 @@ const Header = (props) => {
   
 
   const handleLogout = () => {
-    // Clear the token from localStorage
+    // Clear the token from localStorage1
     localStorage.removeItem('token');
   };
+
 
   return (
     <header className="header">
