@@ -5,9 +5,15 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
+
 const UserModel = require('./models/User');
 const Course = require('./models/Course'); 
 const StudentEnrollment = require('./models/StudentEnrollment');
+const Cart = require('./models/Cart');
+const Order = require('./models/Order');
+const Payment = require('./models/Payment');
+
+const stripe = require('stripe')('sk_test_51OwHCkP1ms7owmBeDD4G1qiKfYBWTzYlwMgPe8BMnRqvQFqwSkydZS2ugtUVzXf1A7eaysPpExdFLioMirwbFGjq00vNesjpbx');
 
 const app = express();
 app.use(cors());
@@ -170,6 +176,7 @@ const verifyUser = (req, res, next) => {
     return next();
   });
 };
+
 app.get('/api/courses',verifyUser, async (req, res) => {
   try {
     let courses;
@@ -265,6 +272,16 @@ app.get('/api/student-enrollments/:userId', async (req, res) => {
   }
 });
 
+app.get('/api/all-courses', async (req, res) => {
+  try {
+    const courses = await Course.find();
+    res.json(courses);
+  } catch (error) {
+    console.error('Error fetching courses from MongoDB:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.delete('/api/course-enrollments/:userId/:courseId', async (req, res) => {
   try {
     const { userId, courseId } = req.params;
@@ -275,6 +292,76 @@ app.delete('/api/course-enrollments/:userId/:courseId', async (req, res) => {
     res.status(500).json({ error: 'Failed to delete enrollment. Please try again later.' });
   }
 });
+
+app.post('/api/create-checkout-session', async (req, res) => {
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price_data: {
+          currency: 'cad',
+          product_data: {
+            name: 'Apex',
+            // Other product details
+          },
+          unit_amount: 1000, // Amount in cents
+        },
+        quantity: 1, // Quantity of the product
+      },
+    ],
+    mode: 'payment',
+    success_url: 'http://localhost:5174/success', // Redirect URL after successful payment
+    cancel_url: 'http://localhost:5174/cancel', // Redirect URL after payment cancellation
+  });
+
+  res.json({ sessionId: session.id });
+});
+
+app.post('/api/cart/add', async (req, res) => {
+    try {
+        const { userId, courseId } = req.body;
+
+       
+        const cartData = await Cart.find();
+
+        // Check if userId and courseId are provided
+        if (!userId || !courseId) {
+            return res.status(400).json({ error: 'userId and courseId are required' });
+        }
+
+        let isCourseInCart = false;
+        for (const cartItem of cartData) {
+          // Convert user_id and course_id of cart item to string for comparison
+          const cartUserIdString = cartItem.user_id.toString();
+          const cartCourseIdString = cartItem.course_id.toString();
+    
+          // Check if the courseId and userId match with the current cart item
+          if (cartUserIdString === userId && cartCourseIdString === courseId) {
+            isCourseInCart = true;
+            break; // No need to continue searching if the course is found in cart
+          }
+        }
+    
+        if (isCourseInCart) {
+          // If the course is already in the cart, send a response indicating it
+          return res.status(200).json({ warning: 'Course already in cart' });
+        }
+    
+
+        const cartItem = new Cart({
+            user_id: userId,
+            course_id: courseId,
+            created_at: new Date()
+        });
+
+        const savedCartItem = await cartItem.save();
+        res.status(201).json(savedCartItem);
+    } catch (error) {
+        console.error('Error adding course to cart:', error);
+        res.status(500).json({ error: 'Failed to add course to cart' });
+    }
+});
+
 
 
 
