@@ -260,3 +260,10 @@ form{
 .header__right__auth a{
 	color:white;
 }
+.custom-margin {
+    margin-top: 20px;
+}
+.custom-button {
+    margin-top: 10px;
+    width: 200px; 
+}
