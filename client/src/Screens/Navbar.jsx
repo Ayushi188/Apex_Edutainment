@@ -85,10 +85,10 @@ const Header = (props) => {
                 }
 
                {user && user.role === "student" && (
-                <li><Link to="/all-courses">All Courses</Link></li>
+                <li><Link to="/courses">All Courses</Link></li>
                )}
                 {!user && (
-                <li><Link to="/all-courses">All Courses</Link></li>
+                <li><Link to="/courses">All Courses</Link></li>
                )}
              
 
