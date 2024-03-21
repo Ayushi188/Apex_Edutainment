@@ -8,6 +8,9 @@ const path = require('path');
 const UserModel = require('./models/User');
 const Course = require('./models/Course'); 
 const StudentEnrollment = require('./models/StudentEnrollment'); 
+const VideoSubmission = require('./models/VideoSubmission');
+const File = require('./models/File');
+
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -26,6 +29,38 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
+//course content for extra material
+app.post('/api/file', upload.single('file'), async (req, res) => {
+  try {
+    const { courseId } = req.body;
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    const newFile = new File({
+      filename: req.file.filename,
+      path: req.file.path,
+      courseId: courseId
+
+    });
+    await newFile.save();
+    return res.status(201).json({ message: 'File uploaded successfully', file: newFile });
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+// Route to handle video submissions
+app.post('/api/submitVideos', async (req, res) => {
+  try {
+      const { videoUrl, courseId } = req.body;
+      const videoSubmission = new VideoSubmission({ videoUrl, courseId });
+      const savedVideoSubmission = await videoSubmission.save();
+      res.status(201).json(savedVideoSubmission);
+  } catch (error) {
+      console.error('Error submitting videos:', error);
+      res.status(500).json({ message: 'Error submitting videos' });
+  }
+});
 
 app.post('/register', async (req, res) => {
   try {

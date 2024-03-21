@@ -1,18 +1,50 @@
 import Navbar from './Navbar';
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect,useRef } from "react";
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import Footer from './Footer';
 import '../assets/CourseContentStyle.css';
-import { Container, Image, Button, Card } from 'react-bootstrap';
+import { Container, Image, Button, Card, Modal, Form } from 'react-bootstrap';
 import ReactPlayer from 'react-player';
 import 'bootstrap/dist/css/bootstrap.min.css';
-   
+  
 const CourseContent = () => {
     const [courses, setCourses] = useState([]);
     const [isOpen, setIsOpen] = useState(false);
     const [userRole, setUserRole] = useState('');
+    const [videos, setVideos] = useState([]);
+    const [courseId, setCourseId] = useState('');
+    const [showModal, setShowModal] = useState(false);
+    const [showFileModal, setShowFileModal] = useState(false);
+    const formRef = useRef(null);
 
+    const [file, setFile] = useState(null);
+    //file starts
+    const handleClose = () => setShowFileModal(false);
+    const handleShow = () => setShowFileModal(true);
+    const handleFileChange = (event) => {
+        setFile(event.target.files[0]);
+    };
+    //file ends
+    const handleCourseIdChange = (event) => {
+        setCourseId(event.target.value);
+      };
+    const handleButtonClick = () => {
+        setShowModal(true);
+    };
+    const handleCloseModal = () => {
+        setShowModal(false);
+    };
+
+    const handleAddVideo = () => {
+        setVideos([...videos, '']);
+    };
+    const handleChange = (index, event) => {
+        const newVideos = [...videos];
+        newVideos[index] = event.target.value;
+        setVideos(newVideos);
+    };
+    
     // Function to toggle collapse state
     const toggleCollapse = () => {
       setIsOpen(!isOpen);
@@ -49,31 +81,45 @@ const CourseContent = () => {
 
       }
     };
+    const handleSubmit = async () => {
+        try {
+            for (const videoUrl of videos) {
+                const response = await axios.post('http://localhost:3001/api/submitVideos', { courseId, videoUrl });
+                console.log('Videos submitted successfully');
+            }
+            handleCloseModal();
+        } catch (error) {
+            console.error('Error submitting videos:', error);
+        }
+    };
+    const handleSubmitFile = async () => {
+        try {
+          const formData = new FormData();
+          formData.append('file', file);
+          formData.append('courseId', courseId);
 
+          // Send the file to the server
+          const response = await axios.post('http://localhost:3001/api/file', formData, {
+            headers: {
+              'Content-Type': 'multipart/form-data',
+            },
+          });
+          
+          console.log('File uploaded successfully:', response.data);
+          
+          // Reset the form fields
+          formRef.current.reset();
+
+         // setFile(null);
+         // setCourseId('');
+          setShowModal(false);
+        } catch (error) {
+          console.error('Error uploading file:', error);
+        }
+      };
   return (
     <div className="container-fluid">
         <Navbar/>
-        {/* <Container className="custom-margin">
-            <Card>
-                {courses.map((course) => (
-                    <Card.Body key={course.courseId}>
-                        <Card.Header><h1>{course.name}</h1></Card.Header>
-                        <Card.Img src={`http://localhost:3001/${course.imagePath.replace(/\\/g, '/')}`}
-                            alt={course.name}
-                            fluid
-                            height="300"
-                            width="1100"
-                        />
-                        <Card.Text>{course.description}</Card.Text>
-                        <Button variant="primary" className="custom-button">Take a Quiz</Button>
-                    </Card.Body>
-                ))}
-            </Card>
-        </Container> */}
-        {/* {userRole === 'teacher' && ( */}
-
-        
-
         <div className="inner-banner">
             <div className="container">
             <div className="row">
@@ -139,7 +185,7 @@ const CourseContent = () => {
                 </ul>
             </div>
             </div>
-          {userRole === '' && (
+          {userRole === 'student' && (
             <div className="card content-sec">
                 <div className="card-body">
                     <div className="row">
@@ -228,7 +274,7 @@ const CourseContent = () => {
                     </div>
                 </div>
             </div>)}
-            {userRole === 'teacher' && (
+            {userRole === '' && (
             <div className="card content-sec">
             <div className="card-body">
                 <div className="row">
@@ -268,20 +314,39 @@ const CourseContent = () => {
                     </a>
                     </h6>
                     <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
-                    <ul>
-                        <li>
-                        <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Lecture1.1 Introduction to the Course</p>
-                        <div>
-                            <a href="javascript:void(0);">Watch Video 1</a>
-                        </div>
-                        </li>
-                        <li>
-                        <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Lecture1.2 Advance Level</p>
-                        <div>
-                            <a href="javascript:void(0);">Watch Video 2</a>
-                        </div>
-                        </li>
-                    </ul>
+                    <Button variant="primary" onClick={handleButtonClick}>Open Video Submission</Button>
+                    <Modal show={showModal} onHide={handleCloseModal} centered>
+                        <Modal.Header closeButton>
+                            <Modal.Title>Video Submission</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                            <Form>     
+                            <Form.Group controlId="formCourseId">
+                                <Form.Control
+                                    type="text"
+                                    placeholder="Enter course ID"
+                                    value={courseId}
+                                    onChange={handleCourseIdChange}
+                                />
+                            </Form.Group>                     
+                                {videos.map((videoUrl, index) => (
+                                    <Form.Group key={index}>
+                                        <Form.Control
+                                            type="text"
+                                            placeholder="Enter video URL"
+                                            value={videoUrl}
+                                            onChange={(e) => handleChange(index, e)}
+                                        />
+                                    </Form.Group>
+                                ))}
+                            </Form>
+                        </Modal.Body>
+                        <Modal.Footer>
+                            <Button variant="secondary" onClick={handleAddVideo}>Add Video</Button>
+                            <Button variant="primary" onClick={handleSubmit}>Submit Videos</Button>
+                        </Modal.Footer>`
+                    </Modal>
+                   
                     </div>
                 </div>
                 <div className="course-card">
@@ -295,15 +360,33 @@ const CourseContent = () => {
                     </a>
                     </h6>
                     <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
-                    <ul>
-                        <li>
-                        <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Extra content of this course</p>
-                        <div>
-                            <a href="javascript:void(0);">Read Here</a>
-                        </div>
-                        </li>
-                        
-                    </ul>
+                    <Button variant="primary" onClick={handleShow}>Add Extra Reading Material</Button>
+                    <Modal show={showFileModal} onHide={handleClose}>
+                        <Modal.Header closeButton>
+                        <Modal.Title>Upload File</Modal.Title>
+                        </Modal.Header>
+                        <Modal.Body>
+                        <Form ref={formRef}>
+                            <Form.Group controlId="formCourseId" className="mb-3">
+                            <Form.Label>Course ID</Form.Label>
+                                <Form.Control type="text" placeholder="Enter Course ID" value={courseId} onChange={handleCourseIdChange} />
+                            </Form.Group>
+                            <Form.Group controlId="formFile" className="mb-3">
+                            <Form.Label>Choose File</Form.Label>
+                            <Form.Control type="file" onChange={handleFileChange} />
+                            </Form.Group>
+                        </Form>
+                        </Modal.Body>
+                        <Modal.Footer>
+                        <Button variant="secondary" onClick={handleClose}>
+                            Close
+                        </Button>
+                        <Button variant="primary" onClick={handleSubmitFile}>
+                            Submit
+                        </Button>
+                        </Modal.Footer>
+                    </Modal>
+                   
                     </div>
                 </div>
             </div>

@@ -764,28 +764,54 @@
 }
 
 
-/* CourseContentStyle.css */
 .custom-button {
-    /* Your existing button styles */
-    background-color: #007bff; /* Primary color */
+    background-color: #007bff;
     color: #fff; /* Text color */
     border: none; /* Remove border */
     padding: 10px 20px; /* Adjust padding */
-    border-radius: 5px; /* Add border radius */
-    font-size: 16px; /* Adjust font size */
-    cursor: pointer; /* Add cursor pointer */
-    
-    /* Center the button horizontally */
+    border-radius: 5px; 
+    font-size: 16px; 
+    cursor: pointer; 
     display: block;
     margin: 0 auto;
 }
 
 .custom-button:hover {
-    /* Your existing hover styles */
-    background-color: #0056b3; /* Darker color on hover */
+    background-color: #0056b3; 
 }
 
 .add-content {
-    margin-top: 20px; /* Add margin at the top */
-    text-align: center; /* Center align content */
+    margin-top: 20px; 
+    text-align: center; 
 }
+.modal-footer {
+	display: flex;
+	justify-content: center;
+  }
+  
+  /* Styles for secondary button */
+  .btn-secondary {
+	background-color: #6c757d;
+	border-color: #6c757d; 
+	color: #fff; 
+	font-weight: bold;
+  }
+  
+  .btn-secondary:hover {
+	background-color: #5a6268; 
+	border-color: #545b62; 
+  }
+  
+  
+  .btn-primary {
+	background-color: #007bff;
+	border-color: #007bff; 
+	color: #fff; 
+	font-weight: bold; 
+  }
+  
+  .btn-primary:hover {
+	background-color: #0069d9; 
+	border-color: #0062cc; 
+  }
+  
