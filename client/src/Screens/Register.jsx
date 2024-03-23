@@ -15,6 +15,7 @@ const SignUp = () => {
     parentEmail: "",
     school: "",
     role:"teacher",
+    approved: false,
   });
 
   const [errors, setErrors] = useState({});
@@ -87,6 +88,7 @@ const SignUp = () => {
           parentEmail: "",
           school: "",
           role: "teacher",
+          approved: false,
         });
       } else if (response.status === 409) {
         setErrors({ user: "User already exists" });
