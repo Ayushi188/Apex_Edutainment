@@ -17,8 +17,9 @@ const CourseContent = () => {
     const [showModal, setShowModal] = useState(false);
     const [showFileModal, setShowFileModal] = useState(false);
     const formRef = useRef(null);
-
+    const [fileInfo, setFileInfo] = useState(null);
     const [file, setFile] = useState(null);
+
     //file starts
     const handleClose = () => setShowFileModal(false);
     const handleShow = () => setShowFileModal(true);
@@ -45,11 +46,34 @@ const CourseContent = () => {
         setVideos(newVideos);
     };
     
-    // Function to toggle collapse state
-    const toggleCollapse = () => {
-      setIsOpen(!isOpen);
-    };
+    
     useEffect(() => {
+      
+      const fetchFile = async () => {
+        try {
+          const courseId = '7'; 
+          //const response = await axios.get('http://localhost:3001/api/courseId');
+         //const courseId = response.data.courseId;
+          const response = await axios.get(`http://localhost:3001/api/file/${courseId}`);
+          
+          setFileInfo(response.data.file);
+        } catch (error) {
+          console.error('Error fetching file:', error);
+        }
+      };
+      const fetchVideos = async () => {
+            try {
+                //const courseId = '19'; 
+
+                const response = await axios.get(`http://localhost:3001/api/videos/${courseId}`);
+                setVideos(response.data.videos);
+            } catch (error) {
+               // console.error('Error fetching videos:', error);
+            }
+        };
+
+      fetchVideos();
+      fetchFile(); 
       fetchUserRole();
       fetchCourses();
     }, []);
@@ -85,6 +109,7 @@ const CourseContent = () => {
         try {
             for (const videoUrl of videos) {
                 const response = await axios.post('http://localhost:3001/api/submitVideos', { courseId, videoUrl });
+                console.log('Response:', response); // Check the response data in the console
                 console.log('Videos submitted successfully');
             }
             handleCloseModal();
@@ -117,6 +142,10 @@ const CourseContent = () => {
           console.error('Error uploading file:', error);
         }
       };
+      // Function to toggle collapse state
+        const toggleCollapse = () => {
+        setIsOpen(!isOpen);
+        };
   return (
     <div className="container-fluid">
         <Navbar/>
@@ -235,7 +264,17 @@ const CourseContent = () => {
                         </h6>
                         <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
                         <ul>
-                            <li>
+                            
+                            {videos.map((video, index) => (
+                                
+                                    <li key={index}>
+                                        <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Video Content</p>
+                                        <div>
+                                            <a href={video.videoUrl}>Watch Video {index + 1}</a>
+                                        </div>
+                                    </li>
+                            ))}
+                            {/* <li>
                             <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Lecture1.1 Introduction to the Course</p>
                             <div>
                                 <a href="javascript:void(0);">Watch Video 1</a>
@@ -246,7 +285,7 @@ const CourseContent = () => {
                             <div>
                                 <a href="javascript:void(0);">Watch Video 2</a>
                             </div>
-                            </li>
+                            </li> */}
                         </ul>
                         </div>
                     </div>
@@ -265,7 +304,14 @@ const CourseContent = () => {
                             <li>
                             <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Extra content of this course</p>
                             <div>
-                                <a href="javascript:void(0);">Read Here</a>
+                                {fileInfo ? (
+                                    <a href={fileInfo.path} target="_blank" rel="noopener noreferrer">Read Here</a>
+                                    // <a href={`/uploads/${fileInfo.filename}`} target="_blank" rel="noopener noreferrer">Read Here</a>
+
+                                ) : (
+                                    <p>No extra material available</p>
+                                )}
+                                {/* <a href="javascript:void(0);">Read Here</a> */}
                             </div>
                             </li>
                             
@@ -274,7 +320,7 @@ const CourseContent = () => {
                     </div>
                 </div>
             </div>)}
-            {userRole === '' && (
+            {userRole === 'teacher' && (
             <div className="card content-sec">
             <div className="card-body">
                 <div className="row">

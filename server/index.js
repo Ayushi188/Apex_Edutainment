@@ -49,6 +49,20 @@ app.post('/api/file', upload.single('file'), async (req, res) => {
     return res.status(500).json({ message: 'Internal server error' });
   }
 });
+app.get('/api/file/:courseId', async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const file = await File.findOne({ courseId });
+    if (!file) {
+      return res.status(404).json({ message: 'File not found for this course' });
+    }
+    return res.status(200).json({ file });
+  } catch (error) {
+    console.error('Error fetching file:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
 // Route to handle video submissions
 app.post('/api/submitVideos', async (req, res) => {
   try {
@@ -59,6 +73,17 @@ app.post('/api/submitVideos', async (req, res) => {
   } catch (error) {
       console.error('Error submitting videos:', error);
       res.status(500).json({ message: 'Error submitting videos' });
+  }
+});
+//get data with course id
+app.get('/api/videos/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const videos = await VideoSubmission.find({ courseId });
+      res.json({ videos });
+  } catch (error) {
+      console.error('Error fetching videos:', error);
+      res.status(500).json({ message: 'Error fetching videos' });
   }
 });
 
