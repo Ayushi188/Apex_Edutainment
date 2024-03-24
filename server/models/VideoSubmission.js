@@ -15,7 +15,9 @@ const videoSubmissionSchema = new Schema({
         type: Date,
         default: Date.now
     },
-    courseId: { type: Number, required: true, unique: true}
+    courseId: { 
+        type: Number
+    }
 
     // courseId: { 
     //     type: mongoose.Schema.Types.ObjectId, 
