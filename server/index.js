@@ -37,7 +37,7 @@ app.post('/api/file', upload.single('file'), async (req, res) => {
       return res.status(400).json({ message: 'No file uploaded' });
     }
     const newFile = new File({
-      filename: req.file.filename,
+      filename: req.file.originalname,
       path: req.file.path,
       courseId: courseId
 
@@ -52,13 +52,13 @@ app.post('/api/file', upload.single('file'), async (req, res) => {
 app.get('/api/file/:courseId', async (req, res) => {
   try {
     const { courseId } = req.params;
-    const file = await File.findOne({ courseId });
-    if (!file) {
-      return res.status(404).json({ message: 'File not found for this course' });
+    const files = await File.find({ courseId });
+    if (!files) {
+      return res.status(404).json({ message: 'Files not found for this course' });
     }
-    return res.status(200).json({ file });
+    return res.status(200).json({ files });
   } catch (error) {
-    console.error('Error fetching file:', error);
+    console.error('Error fetching files:', error);
     return res.status(500).json({ message: 'Internal server error' });
   }
 });

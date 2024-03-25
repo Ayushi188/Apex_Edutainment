@@ -23,16 +23,15 @@ const CourseContent = () => {
     const [showModal, setShowModal] = useState(false);
     const [showFileModal, setShowFileModal] = useState(false);
     const formRef = useRef(null);
-    const [fileInfo, setFileInfo] = useState(null);
-
-    
-
+ 
     const location = useLocation();
     const searchParams = new URLSearchParams(location.search);
     const courseId = searchParams.get('courseId');
     //console.log('courseId:', courseId);
 
     const [file, setFile] = useState(null);
+    const [files, setFiles] = useState(null);
+
     const [loading, setLoading] = useState(true); // Add loading state
 
     //file starts
@@ -64,10 +63,10 @@ const CourseContent = () => {
     
     useEffect(() => {
       
-      const fetchFile = async () => {
+      const fetchFiles = async () => {
         try {
           const response = await axios.get(`http://localhost:3001/api/file/${courseId}`);
-          setFileInfo(response.data.file);
+          setFiles(response.data.files);
         } catch (error) {
           console.error('Error fetching file:', error);
         }
@@ -131,6 +130,12 @@ const CourseContent = () => {
               setCourse(response.data);
               console.log(course)
               console.log('course fetched:');
+
+              const responseInst = await axios.get(`http://localhost:3001/api/courses/${courseId}`, {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                  },
+              }); 
               setLoading(false);
             } catch (error) {
               console.error('Error fetching course:', error);
@@ -141,8 +146,7 @@ const CourseContent = () => {
 
       fetchVideos();
       fetchQuizzes();
-      //fetchFile(); 
-      //fetchUserRole();
+      fetchFiles(); 
       fetchCourse();
       fetchUser();
       fetchCourses();
@@ -180,13 +184,9 @@ const CourseContent = () => {
           });
           
           console.log('File uploaded successfully:', response.data);
-          
-          // Reset the form fields
           formRef.current.reset();
-
-         // setFile(null);
-         // setCourseId('');
           setShowModal(false);
+          window.location.reload(false);
         } catch (error) {
           console.error('Error uploading file:', error);
         }
@@ -225,10 +225,18 @@ const CourseContent = () => {
                         <span className="d-inline-block average-rating"><span>4.5</span> (15)</span>
                     </div>
                     </div>
-                    <span className="web-badge mb-3">Learn Mathematics</span>
+                    {course && (
+                        <span className="web-badge mb-3">Learn {course.name}</span>
+
+                    )
+                    }
                 </div>
-                <h2>The Complete Mathematics Course</h2>
-                <p>Explore mathematics: concepts, problem-solving, real-world applications, in-depth understanding.</p>
+                {course && (
+                        <><h2>The Complete {course.name} Course</h2>
+                        <p>{course.description}</p></>
+                    )
+                    }
+                
                 <div className="course-info d-flex align-items-center border-bottom-0 m-0 p-0">
                     <div className="cou-info">
                     <img src="/img/icon/icon-01.svg" alt="" />
@@ -266,113 +274,8 @@ const CourseContent = () => {
                 </ul>
             </div>
             </div>
-          {user && user.role === "student" && (
-            <div className="card content-sec">
-                <div className="card-body">
-                    <div className="row">
-                        <div className="col-sm-6">
-                            <h5 className="subs-title">Course Content</h5>
-                        </div>
-                        <div className="col-sm-6 text-sm-end">
-                            <h6>10 Lectures 10:56:11</h6>
-                        </div>
-                    </div>
-                    <div className="course-card">
-                        <h6 className="cou-title">
-                        <a
-                            className={`collapsed ${isOpen ? 'show' : ''}`}
-                            onClick={toggleCollapse}
-                            aria-expanded={isOpen ? 'true' : 'false'}
-                        >
-                            Quiz
-                        </a>
-                        </h6>
-                        <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
-                        <ul>
-                            <li>
-                            <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Quiz 1</p>
-                            <div>
-                                <a href="javascript:void(0);">Attempt Quiz 1</a>
-                            </div>
-                            </li>
-                            <li>
-                            <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Quiz 2</p>
-                            <div>
-                                <a href="javascript:void(0);">Attempt Quiz 2</a>
-                            </div>
-                            </li>
-                        </ul>
-                        </div>
-                    </div>
-                    <div className="course-card">
-                        <h6 className="cou-title">
-                        <a
-                            className={`collapsed ${isOpen ? 'show' : ''}`}
-                            onClick={toggleCollapse}
-                            aria-expanded={isOpen ? 'true' : 'false'}
-                        >
-                            Video Content
-                        </a>
-                        </h6>
-                        <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
-                        <ul>
-                            
-                            {videos.map((video, index) => (
-                                
-                                    <li key={index}>
-                                        <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Video Content</p>
-                                        <div>
-                                            <a href={video.videoUrl}>Watch Video {index + 1}</a>
-                                        </div>
-                                    </li>
-                            ))}
-                            {/* <li>
-                            <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Lecture1.1 Introduction to the Course</p>
-                            <div>
-                                <a href="javascript:void(0);">Watch Video 1</a>
-                            </div>
-                            </li>
-                            <li>
-                            <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Lecture1.2 Advance Level</p>
-                            <div>
-                                <a href="javascript:void(0);">Watch Video 2</a>
-                            </div>
-                            </li> */}
-                        </ul>
-                        </div>
-                    </div>
-                    <div className="course-card">
-                        <h6 className="cou-title">
-                        <a
-                            className={`collapsed ${isOpen ? 'show' : ''}`}
-                            onClick={toggleCollapse}
-                            aria-expanded={isOpen ? 'true' : 'false'}
-                        >
-                            Extra Material
-                        </a>
-                        </h6>
-                        <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
-                        <ul>
-                            <li>
-                            <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Extra content of this course</p>
-                            <div>
-                                {fileInfo ? (
-                                    <a href={fileInfo.path} target="_blank" rel="noopener noreferrer">Read Here</a>
-                                    // <a href={`/uploads/${fileInfo.filename}`} target="_blank" rel="noopener noreferrer">Read Here</a>
 
-                                ) : (
-                                    <p>No extra material available</p>
-                                )}
-                                {/* <a href="javascript:void(0);">Read Here</a> */}
-                            </div>
-                            </li>
-                            
-                        </ul>
-                        </div>
-                    </div>
-                </div>
-            </div>)}
-            {user && user.role === "teacher" && (
+            {user && (
             <div className="card content-sec">
             <div className="card-body">
                 <div className="row">
@@ -475,35 +378,48 @@ const CourseContent = () => {
                         Extra Material
                     </a>
                     </h6>
+                    {user && (user.role === "teacher" || user.role === "student") && (
                     <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
-                    <Button variant="primary" onClick={handleShow}>Add Extra Reading Material</Button>
-                    <Modal show={showFileModal} onHide={handleClose}>
-                        <Modal.Header closeButton>
-                        <Modal.Title>Upload File</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                        <Form ref={formRef}>
-                            <Form.Group controlId="formCourseId" className="mb-3">
-                            <Form.Label>Course ID</Form.Label>
-                                <Form.Control type="text" placeholder="Enter Course ID" value={courseId} onChange={handleCourseIdChange} />
-                            </Form.Group>
-                            <Form.Group controlId="formFile" className="mb-3">
-                            <Form.Label>Choose File</Form.Label>
-                            <Form.Control type="file" onChange={handleFileChange} />
-                            </Form.Group>
-                        </Form>
-                        </Modal.Body>
-                        <Modal.Footer>
-                        <Button variant="secondary" onClick={handleClose}>
-                            Close
-                        </Button>
-                        <Button variant="primary" onClick={handleSubmitFile}>
-                            Submit
-                        </Button>
-                        </Modal.Footer>
-                    </Modal>
-                   
+                        {files && files.map((file, index) => (
+                                
+                            <li key={index}>
+                                <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Extra Material {file.filename}</p>
+                                <div>
+                                    <a href={`http://localhost:3001/${file.path.replace(/\\/g, '/')}`} target="_blank" rel="noopener noreferrer">Read Here</a>
+                                </div>
+                            </li>
+                        ))}
+                                
+                        {user && user.role === "teacher" && ( 
+                        <div>
+                            <Button variant="primary" onClick={handleShow}>Add Extra Reading Material</Button>
+                            <Modal show={showFileModal} onHide={handleClose}>
+                                <Modal.Header closeButton>
+                                <Modal.Title>Upload File</Modal.Title>
+                                </Modal.Header>
+                                <Modal.Body>
+                                <Form ref={formRef}>
+                                    <Form.Group controlId="formFile" className="mb-3">
+                                    <Form.Label>Choose File</Form.Label>
+                                    <Form.Control 
+                                        type="file" 
+                                        onChange={(e) => setFile(e.target.files[0])} />
+                                    </Form.Group>
+                                </Form>
+                                </Modal.Body>
+                                <Modal.Footer>
+                                <Button variant="secondary" onClick={handleClose}>
+                                    Close
+                                </Button>
+                                <Button variant="primary" onClick={handleSubmitFile}>
+                                    Submit
+                                </Button>
+                                </Modal.Footer>
+                            </Modal>
+                        </div>
+                        )}
                     </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -533,7 +449,7 @@ const CourseContent = () => {
                                 <a href="#" className="btn btn-wish w-100"><i className="feather-heart"></i> Add to cart</a>
                             </div>
                             <div className="col-md-6">
-                                <a href="javascript:void(0);" className="btn btn-wish w-100"><i className="feather-share-2"></i> Share</a>
+                                <a href="#" className="btn btn-wish w-100"><i className="feather-share-2"></i> Share</a>
                             </div>
                             </div>
                             <a href="#" className="btn btn-enroll w-100">Buy Now</a>
