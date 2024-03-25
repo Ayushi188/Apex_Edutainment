@@ -10,7 +10,7 @@ const Course = require('./models/Course');
 const StudentEnrollment = require('./models/StudentEnrollment'); 
 const VideoSubmission = require('./models/VideoSubmission');
 const File = require('./models/File');
-
+const Quiz = require('./models/Quiz');
 const app = express();
 app.use(cors());
 app.use(express.json());
@@ -184,6 +184,7 @@ const verifyToken = (req, res, next) => {
       return res.status(403).json({ message: 'Failed to authenticate token' });
     }
     req.user = decoded;
+    console.log(decoded);
     next();
   });
 };
@@ -243,7 +244,7 @@ app.get('/api/courses',verifyUser, async (req, res) => {
       )
     }
     
-    console.log(courses);
+    //console.log(courses);
     res.json(courses);
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
@@ -286,6 +287,19 @@ app.get('/api/usercourses',verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+//get data with course id
+app.get('/api/courses/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const course = await Course.findOne({ _id:courseId });
+      console.log(course)
+      res.json(course);
+  } catch (error) {
+      console.error('Error fetching course:', error);
+      res.status(500).json({ message: 'Error fetching course' });
   }
 });
 
@@ -332,6 +346,52 @@ app.delete('/api/course-enrollments/:userId/:courseId', async (req, res) => {
   } catch (error) {
     console.error('Error deleting enrollment:', error);
     res.status(500).json({ error: 'Failed to delete enrollment. Please try again later.' });
+  }
+});
+
+app.post('/api/quizzes', upload.array('images', 10), async (req, res) => {
+  try {
+    const { title, courseId, questions } = req.body;
+    const quiz = new Quiz({ title, courseId, questions });
+    
+    // Save image URLs to the database
+    questions.forEach((question, index) => {
+      if (req.files && req.files[index]) {
+        question.image = req.files[index].path; // Assuming multer has saved images in the 'uploads/' directory
+      }
+    });
+    
+    await quiz.save();
+    res.status(201).json({ message: 'Quiz created successfully' });
+  } catch (error) {
+    console.error('Error creating quiz:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+//get data with course id
+app.get('/api/quizzes/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const quizzes = await Quiz.find({ courseId });
+      res.json({ quizzes });
+  } catch (error) {
+      console.error('Error fetching quizzes:', error);
+      res.status(500).json({ message: 'Error fetching quizzes' });
+  }
+});
+
+//get data with quiz id
+app.get('/api/quizzes/:quizId', async (req, res) => {
+  try {
+      const quizId = req.params.quizId;
+      const quiz = await Quiz.find({ _id :quizId });
+      console.log(quiz);
+      console.error('fetched quiz:', error);
+      res.json({ quiz });
+  } catch (error) {
+      console.error('Error fetching quiz:', error);
+      res.status(500).json({ message: 'Error fetching quiz' });
   }
 });
 

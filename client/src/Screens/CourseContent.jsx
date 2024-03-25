@@ -1,6 +1,6 @@
 import Navbar from './Navbar';
 import React, { useState, useEffect,useRef } from "react";
-import { Link } from 'react-router-dom';
+import { useLocation,Link } from 'react-router-dom';
 import axios from 'axios';
 import Footer from './Footer';
 import '../assets/CourseContentStyle.css';
@@ -9,16 +9,31 @@ import ReactPlayer from 'react-player';
 import 'bootstrap/dist/css/bootstrap.min.css';
   
 const CourseContent = () => {
-    const [courses, setCourses] = useState([]);
+    const [user, setUser] = useState(null);
+    const [courses, setCourses] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
-    const [userRole, setUserRole] = useState('');
-    const [videos, setVideos] = useState([]);
-    const [courseId, setCourseId] = useState('');
+    //const [userRole, setUserRole] = useState('');
+    const [course, setCourse] = useState(null);
+
+    const [videos, setVideos] = useState(null);
+    const [videoUrl, setVideoUrl] = useState(null);
+
+    const [quizzes, setQuizzes] = useState(null);
+
     const [showModal, setShowModal] = useState(false);
     const [showFileModal, setShowFileModal] = useState(false);
     const formRef = useRef(null);
     const [fileInfo, setFileInfo] = useState(null);
+
+    
+
+    const location = useLocation();
+    const searchParams = new URLSearchParams(location.search);
+    const courseId = searchParams.get('courseId');
+    //console.log('courseId:', courseId);
+
     const [file, setFile] = useState(null);
+    const [loading, setLoading] = useState(true); // Add loading state
 
     //file starts
     const handleClose = () => setShowFileModal(false);
@@ -51,11 +66,7 @@ const CourseContent = () => {
       
       const fetchFile = async () => {
         try {
-          const courseId = '7'; 
-          //const response = await axios.get('http://localhost:3001/api/courseId');
-         //const courseId = response.data.courseId;
           const response = await axios.get(`http://localhost:3001/api/file/${courseId}`);
-          
           setFileInfo(response.data.file);
         } catch (error) {
           console.error('Error fetching file:', error);
@@ -63,55 +74,93 @@ const CourseContent = () => {
       };
       const fetchVideos = async () => {
             try {
-                //const courseId = '19'; 
-
                 const response = await axios.get(`http://localhost:3001/api/videos/${courseId}`);
                 setVideos(response.data.videos);
             } catch (error) {
-               // console.error('Error fetching videos:', error);
+               console.error('Error fetching videos:', error);
             }
         };
 
-      fetchVideos();
-      fetchFile(); 
-      fetchUserRole();
-      fetchCourses();
-    }, []);
-    const fetchUserRole = async () => {
-        try {
-            const response = await axios.get('http://localhost:3001/api/user/role', {
+        const fetchQuizzes = async () => {
+            try {
+                const response = await axios.get(`http://localhost:3001/api/quizzes/${courseId}`);
+                setQuizzes(response.data.quizzes);
+            } catch (error) {
+               console.error('Error fetching quizzes:', error);
+            }
+        };
+
+        const fetchUser = async () => {
+            try {
+                const response = await axios.get('http://localhost:3001/api/user', {
+                    headers: {
+                        Authorization: `Bearer ${localStorage.getItem('token')}`,
+                    },
+                });
+                setUser(response.data.user);
+                console.log(user)
+                console.log('user fetched:');
+            } catch (error) {
+                console.error('Error fetching user:', error);
+            }
+        };
+    
+        const fetchCourses = async () => {
+          try {
+            const response = await axios.get('http://localhost:3001/api/courses', {
                 headers: {
-                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                  Authorization: `Bearer ${localStorage.getItem('token')}`,
                 },
-            });
-            setUserRole(response.data.role);
-        } catch (error) {
-            console.error('Error fetching user role:', error);
-        }
-    };
+            });        
+            setCourses(response.data);
+            console.log('courses fetched:');
+          } catch (error) {
+            console.error('Error fetching courses:', error);
+            setCourses(null);
+    
+          }
+        };
+    
+        const fetchCourse = async () => {
+            try {
+              const response = await axios.get(`http://localhost:3001/api/courses/${courseId}`, {
+                  headers: {
+                    Authorization: `Bearer ${localStorage.getItem('token')}`,
+                  },
+              });        
+              setCourse(response.data);
+              console.log(course)
+              console.log('course fetched:');
+              setLoading(false);
+            } catch (error) {
+              console.error('Error fetching course:', error);
+              setCourse(null);
+      
+            }
+          };
 
-    const fetchCourses = async () => {
-      try {
-        const response = await axios.get('http://localhost:3001/api/courses', {
-            headers: {
-              Authorization: `Bearer ${localStorage.getItem('token')}`,
-            },
-        });        
-        setCourses(response.data);
-        console.log('courses fetched:');
-      } catch (error) {
-        console.error('Error fetching courses:', error);
-        setCourses(null);
+      fetchVideos();
+      fetchQuizzes();
+      //fetchFile(); 
+      //fetchUserRole();
+      fetchCourse();
+      fetchUser();
+      fetchCourses();
 
-      }
-    };
+    }, []);
+
     const handleSubmit = async () => {
         try {
-            for (const videoUrl of videos) {
+            if(videoUrl)
+            {
                 const response = await axios.post('http://localhost:3001/api/submitVideos', { courseId, videoUrl });
                 console.log('Response:', response); // Check the response data in the console
                 console.log('Videos submitted successfully');
+                window.location.reload(false);
             }
+            // for (const videoUrl of videos) {
+                
+            // }
             handleCloseModal();
         } catch (error) {
             console.error('Error submitting videos:', error);
@@ -146,10 +195,16 @@ const CourseContent = () => {
         const toggleCollapse = () => {
         setIsOpen(!isOpen);
         };
+
+        if (loading) {
+            return <div>Loading...</div>; // Render loading indicator while data is being fetched
+        }
+
+        
   return (
     <div className="container-fluid">
-        <Navbar/>
-        <div className="inner-banner">
+          <Navbar courses={courses} user={user}/>      
+         <div className="inner-banner">
             <div className="container">
             <div className="row">
                 <div className="col-lg-8">
@@ -200,13 +255,10 @@ const CourseContent = () => {
             <div className="card-body">
                 <h5 className="subs-title">Overview</h5>
                 <h6>Course Description</h6>
-                <p>Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged.</p>
-                <p> {courses && courses.map(course => (
-                      <p key={course.courseId}>
+                <div> {course && (
                         <p>{course.description}</p>
-                      </p>
-                    ))}
-                </p>
+                    )}
+                </div>
                 <h6>Requirements</h6>
                 <ul>                    
                     <li>You'll need a reliable computer or laptop to create course content, manage your course platform, and interact with students.</li>
@@ -214,7 +266,7 @@ const CourseContent = () => {
                 </ul>
             </div>
             </div>
-          {userRole === 'student' && (
+          {user && user.role === "student" && (
             <div className="card content-sec">
                 <div className="card-body">
                     <div className="row">
@@ -320,7 +372,7 @@ const CourseContent = () => {
                     </div>
                 </div>
             </div>)}
-            {userRole === 'teacher' && (
+            {user && user.role === "teacher" && (
             <div className="card content-sec">
             <div className="card-body">
                 <div className="row">
@@ -341,13 +393,27 @@ const CourseContent = () => {
                         Quiz
                     </a>
                     </h6>
+                    {user && (user.role === "teacher" || user.role === "student") && (
                     <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
                     <ul className="list-unstyled mb-0">
+                        {quizzes && quizzes.map((quiz, index) => (
+                                
+                            <li key={index}>
+                                <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Quiz {index + 1}</p>
+                                <div>
+                                    <Link to={`/attempt-quiz?quizId=${quiz._id}`} >Attempt Quiz {index + 1}</Link>
+                                </div>
+                            </li>
+                        ))}
+
+                        {user && user.role === "teacher" && ( 
                         <li>
-                            <Button variant="primary" className="custom-button">Add Quiz</Button>
+                            <Button variant="primary" className="custom-button"><Link to={`/create-quiz?courseId=${courseId}`} style={{ color: 'white' }}>Add Quiz</Link></Button>
                         </li>
+                        )}
                     </ul>
                     </div>
+                    )}
                 </div>
                 <div className="course-card">
                     <h6 className="cou-title">
@@ -359,41 +425,45 @@ const CourseContent = () => {
                         Video Content
                     </a>
                     </h6>
+                    {user && (user.role === "teacher" || user.role === "student") && (
                     <div id="collapseOne" className={`card-collapse collapse ${isOpen ? 'show' : ''}`}>
-                    <Button variant="primary" onClick={handleButtonClick}>Open Video Submission</Button>
-                    <Modal show={showModal} onHide={handleCloseModal} centered>
-                        <Modal.Header closeButton>
-                            <Modal.Title>Video Submission</Modal.Title>
-                        </Modal.Header>
-                        <Modal.Body>
-                            <Form>     
-                            <Form.Group controlId="formCourseId">
-                                <Form.Control
-                                    type="text"
-                                    placeholder="Enter course ID"
-                                    value={courseId}
-                                    onChange={handleCourseIdChange}
-                                />
-                            </Form.Group>                     
-                                {videos.map((videoUrl, index) => (
-                                    <Form.Group key={index}>
+                        {videos && videos.map((video, index) => (
+                                
+                            <li key={index}>
+                                <p><img src="assets/img/icon/play.svg" alt="" className="me-2" />Video Content</p>
+                                <div>
+                                    <a href={video.videoUrl}>Watch Video {index + 1}</a>
+                                </div>
+                            </li>
+                        ))}
+
+                        {user && user.role === "teacher" && ( 
+                        <div>
+                            <Button variant="primary" onClick={handleButtonClick}>Add Video Content</Button>
+                            <Modal show={showModal} onHide={handleCloseModal} centered>
+                            <Modal.Header closeButton>
+                                <Modal.Title>Video Submission</Modal.Title>
+                            </Modal.Header>
+                            <Modal.Body>
+                                <Form>                         
+                                    <Form.Group controlId="videoUrl">
                                         <Form.Control
                                             type="text"
                                             placeholder="Enter video URL"
                                             value={videoUrl}
-                                            onChange={(e) => handleChange(index, e)}
+                                            onChange={(e) => setVideoUrl(e.target.value)}
                                         />
                                     </Form.Group>
-                                ))}
-                            </Form>
-                        </Modal.Body>
-                        <Modal.Footer>
-                            <Button variant="secondary" onClick={handleAddVideo}>Add Video</Button>
-                            <Button variant="primary" onClick={handleSubmit}>Submit Videos</Button>
-                        </Modal.Footer>`
-                    </Modal>
-                   
+                                </Form>
+                            </Modal.Body>
+                            <Modal.Footer>
+                                <Button variant="primary" onClick={handleSubmit}>Add Video</Button>
+                            </Modal.Footer>`
+                            </Modal>
+                        </div>
+                        )}
                     </div>
+                    )}
                 </div>
                 <div className="course-card">
                     <h6 className="cou-title">

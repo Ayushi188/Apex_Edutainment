@@ -6,6 +6,12 @@ const videoSubmissionSchema = new Schema({
         type: String,
         required: false
     },
+    courseId: { 
+        type: mongoose.Schema.Types.ObjectId, 
+        ref: 'Course', 
+        required: true,
+        unique : false
+    },
     submittedBy: {
         type: Schema.Types.ObjectId,
         ref: 'User',
@@ -14,16 +20,7 @@ const videoSubmissionSchema = new Schema({
     submittedAt: {
         type: Date,
         default: Date.now
-    },
-    courseId: { 
-        type: Number
     }
-
-    // courseId: { 
-    //     type: mongoose.Schema.Types.ObjectId, 
-    //     ref: 'Course', 
-    //     required: false 
-    // }
 
 });
 
