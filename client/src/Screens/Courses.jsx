@@ -3,7 +3,7 @@ import Navbar from './Navbar';
 import VideoSection from './VideoSection';
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Footer from './Footer';
 import InstructorDashboard from './InstructorDashboard';
@@ -83,7 +83,7 @@ const CoursePage = () => {
         {user &&
           (
             user.role === "admin" ? (<AdminDashboard />) :
-            (user.role === "teacher" ? (<InstructorDashboard />) : (<StudentDashboard />) )
+            (user.role === "teacher" ? (<InstructorDashboard user={user}/>) : (<StudentDashboard />) )
           )
         }
         <div className="course-grid">
@@ -92,7 +92,7 @@ const CoursePage = () => {
               <img src={`http://localhost:3001/${course.imagePath.replace(/\\/g, '/')}`} alt={course.name} />
               <h3>{course.name}</h3>
               <p>{course.description}</p>
-              <button>View Course</button>
+              <button><Link to={`/coursecontent?courseId=${course._id}`} style={{ color: 'white' }}>View Course</Link></button>
             </div>
           ))}
         </div>
