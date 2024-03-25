@@ -67,7 +67,7 @@ export default function Dashboard() {
         {user &&
           (
             user.role === "admin" ? (<AdminDashboard />) :
-            (user.role === "teacher" ? (<InstructorDashboard />) : (<StudentDashboard />) )
+            (user.role === "teacher" ? (<InstructorDashboard user={user}/>) : (<StudentDashboard />) )
           )
         }
         <div className="course-grid">
