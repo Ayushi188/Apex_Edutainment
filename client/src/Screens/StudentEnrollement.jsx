@@ -18,7 +18,11 @@ const StudentEnrollment = () => {
   // Function to fetch courses from the backend
   const fetchCourses = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/courses');
+      const response = await axios.get('http://localhost:3001/api/all-courses', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
       setCourses(response.data);
     } catch (error) {
       console.error('Error fetching courses:', error);
@@ -65,38 +69,7 @@ const StudentEnrollment = () => {
     }
   };
 
-//   const handleCheckboxChange = async (courseId) => {
-//     // Show confirmation prompt
-//     const result = await Swal.fire({
-//       title: 'Confirmation',
-//       text: 'Are you sure you want to enroll in this course?',
-//       icon: 'warning',
-//       showCancelButton: true,
-//       confirmButtonColor: '#3085d6',
-//       cancelButtonColor: '#d33',
-//       confirmButtonText: 'Yes, enroll me!'
-//     });
-//     // If the user confirms the enrollment
-//     if (result.isConfirmed) {
-//       try {
-//         // Send selected course ID and user ID to the backend API
-//         const response = await axios.post('http://localhost:3001/api/enroll', {
-//           courseId,
-//           userId: user.userId // Assuming user is already fetched and stored in the state
-//         });
-//         console.log('Enrollment successful:', response.data);
-//         // Display success message with SweetAlert
-//         await Swal.fire('Success', 'Enrollment successful!', 'success');
-//       } catch (error) {
-//         console.error('Error enrolling in courses:', error);
-//         // Display error message with SweetAlert
-//         await Swal.fire('Error', 'Failed to enroll in courses. Please try again later.', 'error');
-//       }
-//     } else {
-//       // If the user cancels the enrollment, uncheck the checkbox
-//       document.getElementById(`course-${courseId}`).checked = false;
-//     }
-//   };
+
 
 // Function to handle enrollment confirmation
 const handleEnrollmentConfirmation = async (courseId) => {
@@ -162,7 +135,9 @@ const handleEnrollmentConfirmation = async (courseId) => {
 
   return (
     <div>
-        <Navbar /> 
+      {courses && user &&
+          <Navbar courses={courses} user={user}/> 
+      }
 
         <div className='mt-5'>
             <span className="student-enrollment">List Of Available Course</span><br></br>

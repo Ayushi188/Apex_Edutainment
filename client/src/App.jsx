@@ -15,6 +15,11 @@ import Home from './Screens/Home';
 import Courses from './Screens/Courses';
 import Dashboard from './Screens/Dashboard';
 import StudentEnrollment from './Screens/StudentEnrollement';
+import AllCourses from './Screens/AllCourses';
+import Checkout from './Screens/Checkout';
+import Cart from './Screens/Cart';
+import PaymentSuccess from './Screens/PaymentSuccess';
+import PaymentFailed from './Screens/PaymentFailed';
 
 
 function App() {
@@ -32,7 +37,16 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+
                 <Route path="/student-enrollment" element={<StudentEnrollment />} />
+                <Route path="/all-courses" element={<AllCourses />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/cart" element={<Cart />} />
+                <Route path="/success" element={<PaymentSuccess/>} />
+                <Route path="/failed" element={<PaymentFailed/>} />
+
+
+
             </Routes>
           </div> 
         </Router>   

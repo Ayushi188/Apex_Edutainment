@@ -6,9 +6,15 @@ import { Modal, Button, Form, Alert } from 'react-bootstrap';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Footer from './Footer';
+import InstructorDashboard from './InstructorDashboard';
+import StudentDashboard from './StudentDashboard';
+import AdminDashboard from './AdminDashboard';
+import Swal from 'sweetalert2';
+import { Link } from 'react-router-dom';
 
 const CoursePage = () => {
   const [courses, setCourses] = useState(null);
+  const [userCourses,setUserCourses] = useState(null);
   const [user, setUser] = useState(null);
   const navigate = useNavigate();
 
@@ -16,6 +22,7 @@ const CoursePage = () => {
     // Functions to fetch course and user data
     fetchUser();
     fetchCourses();
+    fetchUserCourses();
   }, []);
 
   const fetchUser = async () => {
@@ -28,7 +35,6 @@ const CoursePage = () => {
       setUser(response.data.user);
       console.log('user fetched:');
     } catch (error) {
-      navigate('/login');
       console.error('Error fetching user:', error);
       setUser(null);
     }
@@ -50,153 +56,160 @@ const CoursePage = () => {
     }
   };
 
-  
-  const [showForm, setShowForm] = useState(false);
-  const [courseId, setCourseId] = useState('');
-  const [name, setName] = useState('');
-  const [description, setDescription] = useState('');
-  const [hours, setHours] = useState('');
-  const [minutes, setMinutes] = useState('');
-  const [imageFile, setImageFile] = useState(null);
-  const [errors, setErrors] = useState({});
-
-  const resetForm = () => {
-    setCourseId('');
-    setName('');
-    setDescription('');
-    setHours('');
-    setMinutes('');
-    setImageFile(null);
-    setErrors({});
-  };
-
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    let newErrors = {};
-    if (!courseId) {
-      newErrors.courseId = 'Course ID is required.';
-    }
-    if (!name) {
-      newErrors.name = 'Course Name is required.';
-    }
-    if (!description) {
-      newErrors.description = 'Description is required.';
-    }
-    if (!hours && !minutes) {
-      newErrors.duration = 'Duration is required.';
-    }
-    if (!imageFile) {
-      newErrors.image = 'Image is required.';
-    }
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
-    }
-    if (!/^\d+$/.test(courseId)) {
-      setErrors({ courseId: 'Course ID should contain only numeric characters.' });
-      return;
-    }
+  const fetchUserCourses = async () => {
     try {
-      const durationInMinutes = (parseInt(hours) || 0) * 60 + (parseInt(minutes) || 0);
-      const formData = new FormData();
-      formData.append('courseId', courseId);
-      formData.append('name', name);
-      formData.append('description', description);
-      formData.append('duration', durationInMinutes);
-      formData.append('image', imageFile);
-      formData.append('instructor', user.userId)
-      
-      const response = await axios.post('http://localhost:3001/api/courses', formData, {
+      const response = await axios.get('http://localhost:3001/api/usercourses', {
         headers: {
-          'Content-Type': 'multipart/form-data'
-        }
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
       });
-      console.log(response.data);
-      setShowForm(false);
-      resetForm();
-      window.location.reload(false);
+      setUserCourses(response.data);
+      console.log('courses fetched:');
     } catch (error) {
-      console.error('Error adding course:', error);
+      // Handle error, e.g., token expired or invalid
+      console.error('Error fetching courses:', error);
+      setUserCourses(null);
     }
   };
 
-  const handleFileChange = (e) => {
-    setImageFile(e.target.files[0]);
-  };
+   const handleAddToCart = async (courseId) => {
+    // Check if the user is logged in
+    if (!user) {
+        // If not logged in, show a popup message to prompt the user to log in
+        Swal.fire({
+            icon: 'info',
+            title: 'Please Login',
+            text: 'Please login to add courses to your cart.',
+            showCancelButton: true,
+            confirmButtonText: 'Login',
+            cancelButtonText: 'Cancel'
+        }).then((result) => {
+            if (result.isConfirmed) {
+                // Redirect the user to the login page
+                // Example: history.push('/login');
+            }
+        });
+        return;
+    }
+
+    // If the user is logged in, proceed with adding the course to the cart
+    try {
+        const response = await axios.post(`http://localhost:3001/api/cart/add`, {
+            userId: user.userId,
+            courseId: courseId
+        });
+        if(response.status == 200){
+          Swal.fire({
+            icon: 'warning',
+            title: 'Success!',
+            text: 'Course Already in cart.',
+        });
+        }else{
+          Swal.fire({
+              icon: 'success',
+              title: 'Success!',
+              text: 'Course added to cart.',
+          });
+        }
+    } catch (error) {
+        console.error('Error adding course to cart:', error);
+        // Show error message using SweetAlert
+        Swal.fire({
+            icon: 'error',
+            title: 'Oops...',
+            text: 'Something went wrong!',
+        });
+    }
+};
+
 
   return (
     <div className="container-fluid">
       <div className="course-page">
-        {courses && user &&
-          <Navbar courses={courses} user={user}/> 
-        }
-        
-        <div className="course-welcome">Hi, Welcome</div>
-        <VideoSection/>
+        {/* {courses && user && */}
+          <Navbar courses={userCourses} user={user}/> 
+        {/* } */}
+
+
         <div className="course-header">Courses</div>
-        <div className="add-new-course-wrapper">
-          <button
-            className="add-new-course-button"
-            onClick={() => setShowForm(true)}>
-            Add New Course
-          </button>
-        </div>
-        <div className="course-grid">
-          {courses && courses.map((course) => (
-            <div className="course-card" key={course.id}>
-              <img src={`http://localhost:3001/${course.imagePath.replace(/\\/g, '/')}`} alt={course.name} />
-              <h3>{course.name}</h3>
-              <p>{course.description}</p>
-              <button>View Course</button>
+        {user &&
+          (
+            user.role === "admin" ? (<AdminDashboard />) :
+            (user.role === "teacher" ? (<InstructorDashboard />) : (<StudentDashboard />) )
+          )
+        }
+        <div className='container mt-5'>
+
+<div className='justify-content-center row '>
+<span className="student-enrollment mb-5" style={{color:"#212529"}}>Courses</span><br></br>  
+  {courses && courses.map((course) => (
+       <div key={course._id} className="col-md-4">
+        <div className="course-box trend-box">
+            <div className="product trend-product">
+                <div className="product-img">
+                    <a href="course-details.html">
+                        <img height="250px" src={'http://localhost:3001/'+course.imagePath}  alt={course.name} />
+                    </a>
+                    <div className="price">
+                        <h3>$200 <span>$99.00</span></h3>
+                    </div>
+                </div>
+                <div className="product-content">
+                    <div className="course-group d-flex">
+                        <div className="course-group-img d-flex">
+                            <a href="instructor-profile.html">
+                            <img width="48" height="48" src="https://img.icons8.com/color/48/circled-user-male-skin-type-7--v1.png" alt="circled-user-male-skin-type-7--v1"/>                                  </a>
+                            <div className="course-name">
+                                <h3><a href="instructor-profile.html">Neha Devi</a> <p>Instructor</p></h3>
+                                
+                            </div>
+                        </div>
+                        <div className="course-share d-flex align-items-center justify-content-center">
+                            <a href="#"><i className="far fa-heart"></i></a>
+                        </div>
+                    </div>
+                    <h3 className="title"><a href="course-details.html">{course.name}</a></h3>
+                    <div className="course-info d-flex align-items-center">
+                        <div className="rating-img d-flex align-items-center">
+                            <img src="/img/icon/icon-01.svg" alt="" className="img-fluid" />
+                            <p>13+ Lesson</p>
+                        </div>
+                        <div className="course-view d-flex align-items-center">
+                            <img src="/img/icon/icon-02.svg" alt="" className="img-fluid" />
+                            <p>10hr 30min</p>
+                        </div>
+                    </div>
+                    <div className="rating">
+                        <img width="20" height="20" src="https://img.icons8.com/emoji/48/star-emoji.png" alt="star-emoji"/>                              
+                        <img width="20" height="20" src="https://img.icons8.com/emoji/48/star-emoji.png" alt="star-emoji"/>
+                        <img width="20" height="20" src="https://img.icons8.com/emoji/48/star-emoji.png" alt="star-emoji"/>
+                        <img width="20" height="20" src="https://img.icons8.com/emoji/48/star-emoji.png" alt="star-emoji"/>
+                        <span className="d-inline-block average-rating"><span>4.0</span> (15)</span>
+                    </div>
+                    <div className="all-btn all-category d-flex align-items-center">
+                    {user && user.role === 'student' && (
+                      <>
+                        {/* <Link to="/checkout" className="btn btn-primary">Buy Now</Link> */}
+                        <button className="btn btn-primary" onClick={() => handleAddToCart(course._id)}>Add To Cart</button>
+                      </>
+                    )}
+                    </div>
+                </div>
             </div>
-          ))}
         </div>
+      </div>
+      // <div className="course-card" key={course.id}>
+      //   <img src={`http://localhost:3001/${course.imagePath.replace(/\\/g, '/')}`} alt={course.name} />
+      //   <h3>{course.name}</h3>
+      //   <p>{course.description}</p>
+      //   <button>View Course</button>
+      // </div>
+    ))}
+  </div>
+  </div>
         <Footer />
       </div>
-      <div>
-        <Modal show={showForm} onHide={() => { setShowForm(false); resetForm(); }}>
-          <Modal.Header closeButton>
-            <Modal.Title>Add New Course</Modal.Title>
-          </Modal.Header>
-          <Modal.Body>
-            <Form onSubmit={handleSubmit}>
-              <Form.Group className="mb-3" controlId="courseId">
-                <Form.Label>Course ID:</Form.Label>
-                <Form.Control type="text" value={courseId} onChange={(e) => setCourseId(e.target.value)} />
-                {errors.courseId && <Alert variant="danger">{errors.courseId}</Alert>}
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="name">
-                <Form.Label>Course Name:</Form.Label>
-                <Form.Control type="text" value={name} onChange={(e) => setName(e.target.value)} />
-                {errors.name && <Alert variant="danger">{errors.name}</Alert>}
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="description">
-                <Form.Label>Course Description:</Form.Label>
-                <Form.Control as="textarea" rows={3} value={description} onChange={(e) => setDescription(e.target.value)} />
-                {errors.description && <Alert variant="danger">{errors.description}</Alert>}
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="duration">
-                <Form.Label>Course Duration:</Form.Label>
-                <div style={{ display: 'flex', alignItems: 'center' }}>
-                  <Form.Control type="number" placeholder="Hours" value={hours} onChange={(e) => setHours(e.target.value)} />
-                  <span style={{ margin: '0 10px' }}></span>
-                  <Form.Control type="number" placeholder="Minutes" value={minutes} onChange={(e) => setMinutes(e.target.value)} />
-                  <span></span>
-                </div>
-                {errors.duration && <Alert variant="danger">{errors.duration}</Alert>}
-              </Form.Group>
-              <Form.Group className="mb-3" controlId="image">
-                <Form.Label>Course Image:</Form.Label>
-                <Form.Control type="file" onChange={handleFileChange} />
-                {errors.image && <Alert variant="danger">{errors.image}</Alert>}
-              </Form.Group>
-              <Button className="mb-4" style={{ width: '100%' }} variant="primary" type="submit">
-                Submit
-              </Button>
-            </Form>
-          </Modal.Body>
-        </Modal>
-      </div>
+      
     </div>
   );
 };
