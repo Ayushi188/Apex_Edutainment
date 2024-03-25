@@ -9,13 +9,14 @@ const Header = (props) => {
   
 
   const handleLogout = () => {
-    // Clear the token from localStorage
+    // Clear the token from localStorage1
     localStorage.removeItem('token');
     if (location.pathname === "/home") {
       // If the current route is "/home", refresh the page
       window.location.reload();
     }
   };
+
 
   return (
     <header className="header">
@@ -57,7 +58,7 @@ const Header = (props) => {
                   </ul>
                 </li>
                 <li><Link to="#">subscription</Link></li>
-                <li><Link to="#">About us</Link></li>
+                <li><Link to="/about">About us</Link></li>
               </ul>
             </nav>
           </div>
