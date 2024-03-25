@@ -15,7 +15,10 @@ import Home from './Screens/Home';
 import Courses from './Screens/Courses';
 import Dashboard from './Screens/Dashboard';
 import StudentEnrollment from './Screens/StudentEnrollement';
+import AdminApproval  from './Screens/AdminApproval';
 import CourseContent from './Screens/CourseContent';
+import QuizForm from './Screens/QuizForm';
+import QuizAttempt from './Screens/QuizAttempt';
 import About from './Screens/About';
 
 
@@ -34,10 +37,12 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/adminapproval" element={<AdminApproval />} />
                 <Route path="/student-enrollment" element={<StudentEnrollment />} />
                 <Route path="/coursecontent" element={<CourseContent />} />
+                <Route path="/create-quiz" element={<QuizForm />} />
+                <Route path="/attempt-quiz" element={<QuizAttempt />} />
                 <Route path="/about" element={<About />} />
-
             </Routes>
           </div> 
         </Router>   

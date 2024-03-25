@@ -8,8 +8,11 @@ const path = require('path');
 const nodemailer = require('nodemailer');
 const UserModel = require('./models/User');
 const Course = require('./models/Course'); 
+const StudentEnrollment = require('./models/StudentEnrollment'); 
+const VideoSubmission = require('./models/VideoSubmission');
+const File = require('./models/File');
+const Quiz = require('./models/Quiz');
 const FeedbackForm = require('./models/FeedbackForm'); 
-const StudentEnrollment = require('./models/StudentEnrollment');
 
 const app = express();
 app.use(cors());
@@ -29,8 +32,91 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
+//course content for extra material
+app.post('/api/file', upload.single('file'), async (req, res) => {
+  try {
+    const { courseId } = req.body;
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    const newFile = new File({
+      filename: req.file.originalname,
+      path: req.file.path,
+      courseId: courseId
+
+    });
+    await newFile.save();
+    return res.status(201).json({ message: 'File uploaded successfully', file: newFile });
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+app.get('/api/file/:courseId', async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const files = await File.find({ courseId });
+    if (!files) {
+      return res.status(404).json({ message: 'Files not found for this course' });
+    }
+    return res.status(200).json({ files });
+  } catch (error) {
+    console.error('Error fetching files:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Route to handle video submissions
+app.post('/api/submitVideos', async (req, res) => {
+  try {
+      const { videoUrl, courseId } = req.body;
+      const videoSubmission = new VideoSubmission({ videoUrl, courseId });
+      const savedVideoSubmission = await videoSubmission.save();
+      res.status(201).json(savedVideoSubmission);
+  } catch (error) {
+      console.error('Error submitting videos:', error);
+      res.status(500).json({ message: 'Error submitting videos' });
+  }
+});
+//get data with course id
+app.get('/api/videos/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const videos = await VideoSubmission.find({ courseId });
+      res.json({ videos });
+  } catch (error) {
+      console.error('Error fetching videos:', error);
+      res.status(500).json({ message: 'Error fetching videos' });
+  }
+});
+
+const createAdminUser = async () => {
+  try {
+    // Check if admin user already exists
+    const adminUser = await UserModel.findOne({ email: 'admin@apex.ca' });
+    if (!adminUser) {
+      // Create admin user record
+      const newAdminUser = new UserModel({
+        "firstName": "Admin",
+        "lastName": "Admin",
+        "email": "admin@apex.ca",
+        "reEmail": "admin@apex.ca",
+        "role": "admin",
+        "password": "123apex"
+      });
+      await newAdminUser.save();
+      console.log('Admin user created successfully');
+    } else {
+      console.log('Admin user already exists');
+    }
+  } catch (error) {
+    console.error('Error creating admin user:', error);
+  }
+};
+
+createAdminUser();
 //nodemailer(gmail)
-const transporter = nodemailer.createTransport({
+const transporter_1 = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: 'hardeepdhami02@gmail.com',
@@ -109,6 +195,7 @@ const verifyToken = (req, res, next) => {
       return res.status(403).json({ message: 'Failed to authenticate token' });
     }
     req.user = decoded;
+    console.log(decoded);
     next();
   });
 };
@@ -135,38 +222,98 @@ app.post('/api/enroll', async (req, res) => {
   }
 });
 
+// Middleware function to verify JWT token
+const verifyUser = (req, res, next) => {
+  // Get token from headers
+  const token = req.headers.authorization;
 
-app.get('/api/courses',verifyToken, async (req, res) => {
+  // Check if token is provided
+  if (!token) {
+    return next();
+  }
+
+  // Verify token
+  jwt.verify(token.replace('Bearer ', ''), 'apex_secret_key', (err, decoded) => {
+    if (err) {
+      return next();
+    }
+    req.user = decoded;
+    return next();
+  });
+};
+app.get('/api/courses',verifyUser, async (req, res) => {
   try {
-    var courses = [];
-    const userId = req.user.userId;
-    if(req.user.role === "teacher")
-    {
-      courses = await Course.find({ instructor: userId });
+    let courses;
+    {req.user ? (
+      req.user.role === "admin" ? (
+        courses = await Course.find({ })
+        ): (
+          courses = await Course.find({status: "approved"})
+        )
+      ) : (
+        courses = await Course.find({status: "approved"})
+      )
     }
-    else{
-      const studentEnrollments = await StudentEnrollment.find({ userId });
-      for (const enrollment of studentEnrollments) {
-        console.log(enrollment.courseId);
-        const course = await Course.findOne({ courseId: enrollment.courseId });
-        if (course) {
-          courses.push(course);
-        }
-      }
-      // studentEnrollments.forEach(enrollment => {
-      //   console.log(enrollment.courseId);
-      //   var course = await Course.findOne({ courseId: enrollment.courseId })
-      //   courses =[...courses, course ]
-      // });
-    }
+    
     //console.log(courses);
-    //console.log(JSON.stringify(courses));
-    res.json(JSON.parse(JSON.stringify(courses)));
+    res.json(courses);
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.get('/api/usercourses',verifyToken, async (req, res) => {
+  try {
+    var courses = [];
+    const userId = req.user.userId;
+    if(req.user.role === "admin")
+    {
+      courses = await Course.find({ status: "pending" });
+    }
+    else if(req.user.role === "teacher")
+    {
+      courses = await Course.find({ instructor: userId });
+    }
+    else
+    {
+      const studentEnrollments = await StudentEnrollment.find({ userId });
+      console.log(studentEnrollments);
+
+      const coursePromises = studentEnrollments.map(async (enrollment) => {
+        try {
+          console.log(enrollment.courseId);
+          const course = await Course.findById(enrollment.courseId);
+          return course;
+        } catch (error) {
+          console.error('Error fetching course:', error);
+          throw error; // Propagate the error up
+        }
+      });
+  
+      courses = await Promise.all(coursePromises);
+    }
+    console.log(courses);
+    res.json(courses);
+  } catch (error) {
+    console.error('Error fetching courses from MongoDB:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+//get data with course id
+app.get('/api/courses/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const course = await Course.findOne({ _id:courseId });
+      console.log(course)
+      res.json(course);
+  } catch (error) {
+      console.error('Error fetching course:', error);
+      res.status(500).json({ message: 'Error fetching course' });
+  }
+});
+
 app.post('/api/courses', upload.single('image'), async (req, res) => {
   try {
     const { courseId, name, description, duration, instructor } = req.body;
@@ -205,7 +352,7 @@ app.post('/api/feedbackForm',upload.single('file'),async (req, res) => {
       text: `Hello ${name},\n\nThank you for reaching out to us with your query. We have received it and want to assure you that your questions are important to us.\n\nOur team is currently reviewing your query and will provide you with a thorough response shortly. Please bear with us as we work to address your concerns.\n\nIn the meantime, if you have any additional information or urgent matters to discuss, feel free to reach out to us.\n\nThank you for choosing us to assist you with your query.\n\n\nBest regards,\nApex Team`
     };
 
-    transporter.sendMail(mailOptions, function(error, info) {
+    transporter_1.sendMail(mailOptions, function(error, info) {
       if (error) {
         console.error('Error sending email:', error);
       } else {
@@ -250,8 +397,164 @@ app.delete('/api/course-enrollments/:userId/:courseId', async (req, res) => {
   }
 });
 
+app.put('/register/approve/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    await UserModel.findByIdAndUpdate(userId, { approved: true });
+
+    res.status(200).json({ message: 'User approved successfully' });
+  } catch (error) {
+    console.error('Error approving user:', error);
+    res.status(500).json({ error: 'Failed to approve user. Please try again later.' });
+  }
+});
+
+app.put('/register/reject/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    await sendRejectEmail(user.email);
+
+    // Remove the user from the database
+    await UserModel.findByIdAndDelete(userId);
+
+    res.status(200).json({ message: 'User rejected and removed successfully' });
+  } catch (error) {
+    console.error('Error rejecting user:', error);
+    res.status(500).json({ error: 'Failed to reject user. Please try again later.' });
+  }
+});
 
 
+const nodemailer = require('nodemailer');
 
 
+// Create a transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'apexdevelopment123@gmail.com',
+    pass: 'itya lcod fsoa axxw'
+  }
+});
 
+// Function to send email
+const sendEmail = async (email) => {
+  try {
+    await transporter.sendMail({
+      from: 'apexdevelopment123@gmail.com',
+      to: email,
+      subject: 'Account Approved',
+      text: 'Your account has been approved. You can now login.'
+    });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw error; // Rethrow the error to handle it elsewhere if needed
+  }
+};
+app.post('/api/quizzes', upload.array('images', 10), async (req, res) => {
+  try {
+    const { title, courseId, questions } = req.body;
+    const quiz = new Quiz({ title, courseId, questions });
+    
+    // Save image URLs to the database
+    questions.forEach((question, index) => {
+      if (req.files && req.files[index]) {
+        question.image = req.files[index].path; // Assuming multer has saved images in the 'uploads/' directory
+      }
+    });
+    
+    await quiz.save();
+    res.status(201).json({ message: 'Quiz created successfully' });
+  } catch (error) {
+    console.error('Error creating quiz:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+//get data with course id
+app.get('/api/quizzes/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const quizzes = await Quiz.find({ courseId });
+      res.json({ quizzes });
+  } catch (error) {
+      console.error('Error fetching quizzes:', error);
+      res.status(500).json({ message: 'Error fetching quizzes' });
+  }
+});
+
+//get data with quiz id
+app.get('/api/quizzes/:quizId', async (req, res) => {
+  try {
+      const quizId = req.params.quizId;
+      const quiz = await Quiz.find({ _id :quizId });
+      console.log(quiz);
+      console.error('fetched quiz:', error);
+      res.json({ quiz });
+  } catch (error) {
+      console.error('Error fetching quiz:', error);
+      res.status(500).json({ message: 'Error fetching quiz' });
+  }
+});
+
+
+const sendRejectEmail = async (email) => {
+  try {
+    await transporter.sendMail({
+      from: 'apexdevelopment123@gmail.com',
+      to: email,
+      subject: 'Accout Rejected',
+      text: 'Your account has been rejected. Try again.'
+    });
+  } catch (error) {
+    console.error('Error sending rejection email:', error);
+    throw error; // Rethrow the error to handle it elsewhere if needed
+  }
+};
+
+// Route to handle sending email
+app.post("/send-email", async (req, res) => {
+  const { email } = req.body;
+  try {
+    await sendEmail(email);
+    res.status(200).json({ message: "Email sent successfully" });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ error: "Failed to send email" });
+  }
+});
+
+app.post("/send-reject-email", async (req, res) => {
+  const { email } = req.body;
+  try {
+    await sendRejectEmail(email);
+    res.status(200).json({ message: "Reject Email sent successfully" });
+  } catch (error) {
+    console.error("Error sending reject email:", error);
+    res.status(500).json({ error: "Failed to send reject email" });
+  }
+});
+
+app.get('/register', async (req, res) => {
+  try {
+    const pendingUsers = await UserModel.find({ approved: false });
+    res.json(pendingUsers);
+  } catch (error) {
+    console.error('Error fetching pending users:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// app.get('/pending-users', async (req, res) => {
+//   try {
+//     const pendingUsers = await UserModel.find({ approved: false });
+//     res.json(pendingUsers);
+//   } catch (error) {
+//     console.error('Error fetching pending users:', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });

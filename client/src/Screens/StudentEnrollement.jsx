@@ -18,7 +18,11 @@ const StudentEnrollment = () => {
   // Function to fetch courses from the backend
   const fetchCourses = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/courses');
+      const response = await axios.get('http://localhost:3001/api/courses', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
       setCourses(response.data);
     } catch (error) {
       console.error('Error fetching courses:', error);
@@ -162,7 +166,9 @@ const handleEnrollmentConfirmation = async (courseId) => {
 
   return (
     <div>
-        <Navbar /> 
+      {courses && user &&
+          <Navbar courses={courses} user={user}/> 
+      }
 
         <div className='mt-5'>
             <span className="student-enrollment">List Of Available Course</span><br></br>

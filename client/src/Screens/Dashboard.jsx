@@ -4,6 +4,9 @@ import axios from 'axios';
 import Navbar from './Navbar';
 import VideoSection from './VideoSection';
 import  Footer from './Footer';
+import InstructorDashboard from './InstructorDashboard';
+import StudentDashboard from './StudentDashboard';
+import AdminDashboard from './AdminDashboard';
 
 
 export default function Dashboard() {
@@ -36,13 +39,14 @@ export default function Dashboard() {
 
   const fetchCourses = async () => {
     try {
-      const response = await axios.get('http://localhost:3001/api/courses', {
+      const response = await axios.get('http://localhost:3001/api/usercourses', {
         headers: {
           Authorization: `Bearer ${localStorage.getItem('token')}`,
         },
       });
       setCourses(response.data);
       console.log('courses fetched:');
+      console.log(response.data);
     } catch (error) {
       // Handle error, e.g., token expired or invalid
       console.error('Error fetching courses:', error);
@@ -60,13 +64,12 @@ export default function Dashboard() {
         <div className="course-welcome">Hi, Welcome</div>
         <VideoSection/>
         <div className="course-header">Courses</div>
-        <div className="add-new-course-wrapper">
-          <button
-            className="add-new-course-button"
-            onClick={() => setShowForm(true)}>
-            Add New Course
-          </button>
-        </div>
+        {user &&
+          (
+            user.role === "admin" ? (<AdminDashboard />) :
+            (user.role === "teacher" ? (<InstructorDashboard user={user}/>) : (<StudentDashboard />) )
+          )
+        }
         <div className="course-grid">
           {courses && courses.map((course) => (
             <div className="course-card" key={course.id}>
@@ -81,7 +84,6 @@ export default function Dashboard() {
         </div>
         <Footer />
       </div>
-      
     </div>
   );
 };
