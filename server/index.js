@@ -7,7 +7,10 @@ const multer = require('multer');
 const path = require('path');
 const UserModel = require('./models/User');
 const Course = require('./models/Course'); 
-const StudentEnrollment = require('./models/StudentEnrollment');
+const StudentEnrollment = require('./models/StudentEnrollment'); 
+const VideoSubmission = require('./models/VideoSubmission');
+const File = require('./models/File');
+const Quiz = require('./models/Quiz');
 
 const app = express();
 app.use(cors());
@@ -27,6 +30,63 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
+//course content for extra material
+app.post('/api/file', upload.single('file'), async (req, res) => {
+  try {
+    const { courseId } = req.body;
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    const newFile = new File({
+      filename: req.file.originalname,
+      path: req.file.path,
+      courseId: courseId
+
+    });
+    await newFile.save();
+    return res.status(201).json({ message: 'File uploaded successfully', file: newFile });
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+app.get('/api/file/:courseId', async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const files = await File.find({ courseId });
+    if (!files) {
+      return res.status(404).json({ message: 'Files not found for this course' });
+    }
+    return res.status(200).json({ files });
+  } catch (error) {
+    console.error('Error fetching files:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Route to handle video submissions
+app.post('/api/submitVideos', async (req, res) => {
+  try {
+      const { videoUrl, courseId } = req.body;
+      const videoSubmission = new VideoSubmission({ videoUrl, courseId });
+      const savedVideoSubmission = await videoSubmission.save();
+      res.status(201).json(savedVideoSubmission);
+  } catch (error) {
+      console.error('Error submitting videos:', error);
+      res.status(500).json({ message: 'Error submitting videos' });
+  }
+});
+//get data with course id
+app.get('/api/videos/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const videos = await VideoSubmission.find({ courseId });
+      res.json({ videos });
+  } catch (error) {
+      console.error('Error fetching videos:', error);
+      res.status(500).json({ message: 'Error fetching videos' });
+  }
+});
 
 const createAdminUser = async () => {
   try {
@@ -125,6 +185,7 @@ const verifyToken = (req, res, next) => {
       return res.status(403).json({ message: 'Failed to authenticate token' });
     }
     req.user = decoded;
+    console.log(decoded);
     next();
   });
 };
@@ -184,7 +245,7 @@ app.get('/api/courses',verifyUser, async (req, res) => {
       )
     }
     
-    console.log(courses);
+    //console.log(courses);
     res.json(courses);
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
@@ -227,6 +288,19 @@ app.get('/api/usercourses',verifyToken, async (req, res) => {
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+//get data with course id
+app.get('/api/courses/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const course = await Course.findOne({ _id:courseId });
+      console.log(course)
+      res.json(course);
+  } catch (error) {
+      console.error('Error fetching course:', error);
+      res.status(500).json({ message: 'Error fetching course' });
   }
 });
 
@@ -334,6 +408,52 @@ const sendEmail = async (email) => {
     throw error; // Rethrow the error to handle it elsewhere if needed
   }
 };
+app.post('/api/quizzes', upload.array('images', 10), async (req, res) => {
+  try {
+    const { title, courseId, questions } = req.body;
+    const quiz = new Quiz({ title, courseId, questions });
+    
+    // Save image URLs to the database
+    questions.forEach((question, index) => {
+      if (req.files && req.files[index]) {
+        question.image = req.files[index].path; // Assuming multer has saved images in the 'uploads/' directory
+      }
+    });
+    
+    await quiz.save();
+    res.status(201).json({ message: 'Quiz created successfully' });
+  } catch (error) {
+    console.error('Error creating quiz:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+//get data with course id
+app.get('/api/quizzes/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const quizzes = await Quiz.find({ courseId });
+      res.json({ quizzes });
+  } catch (error) {
+      console.error('Error fetching quizzes:', error);
+      res.status(500).json({ message: 'Error fetching quizzes' });
+  }
+});
+
+//get data with quiz id
+app.get('/api/quizzes/:quizId', async (req, res) => {
+  try {
+      const quizId = req.params.quizId;
+      const quiz = await Quiz.find({ _id :quizId });
+      console.log(quiz);
+      console.error('fetched quiz:', error);
+      res.json({ quiz });
+  } catch (error) {
+      console.error('Error fetching quiz:', error);
+      res.status(500).json({ message: 'Error fetching quiz' });
+  }
+});
+
 
 const sendRejectEmail = async (email) => {
   try {
