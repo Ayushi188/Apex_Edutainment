@@ -87,6 +87,32 @@ app.get('/api/videos/:courseId', async (req, res) => {
   }
 });
 
+const createAdminUser = async () => {
+  try {
+    // Check if admin user already exists
+    const adminUser = await UserModel.findOne({ email: 'admin@apex.ca' });
+    if (!adminUser) {
+      // Create admin user record
+      const newAdminUser = new UserModel({
+        "firstName": "Admin",
+        "lastName": "Admin",
+        "email": "admin@apex.ca",
+        "reEmail": "admin@apex.ca",
+        "role": "admin",
+        "password": "123apex"
+      });
+      await newAdminUser.save();
+      console.log('Admin user created successfully');
+    } else {
+      console.log('Admin user already exists');
+    }
+  } catch (error) {
+    console.error('Error creating admin user:', error);
+  }
+};
+
+createAdminUser();
+
 app.post('/register', async (req, res) => {
   try {
     const { email } = req.body; // Change this to match the key in the client-side data
@@ -184,38 +210,85 @@ app.post('/api/enroll', async (req, res) => {
   }
 });
 
+// Middleware function to verify JWT token
+const verifyUser = (req, res, next) => {
+  // Get token from headers
+  const token = req.headers.authorization;
 
-app.get('/api/courses',verifyToken, async (req, res) => {
+  // Check if token is provided
+  if (!token) {
+    return next();
+  }
+
+  // Verify token
+  jwt.verify(token.replace('Bearer ', ''), 'apex_secret_key', (err, decoded) => {
+    if (err) {
+      return next();
+    }
+    req.user = decoded;
+    return next();
+  });
+};
+app.get('/api/courses',verifyUser, async (req, res) => {
   try {
-    var courses = [];
-    const userId = req.user.userId;
-    if(req.user.role === "teacher")
-    {
-      courses = await Course.find({ instructor: userId });
+    let courses;
+    {req.user ? (
+      req.user.role === "admin" ? (
+        courses = await Course.find({ })
+        ): (
+          courses = await Course.find({status: "approved"})
+        )
+      ) : (
+        courses = await Course.find({status: "approved"})
+      )
     }
-    else{
-      const studentEnrollments = await StudentEnrollment.find({ userId });
-      for (const enrollment of studentEnrollments) {
-        console.log(enrollment.courseId);
-        const course = await Course.findOne({ courseId: enrollment.courseId });
-        if (course) {
-          courses.push(course);
-        }
-      }
-      // studentEnrollments.forEach(enrollment => {
-      //   console.log(enrollment.courseId);
-      //   var course = await Course.findOne({ courseId: enrollment.courseId })
-      //   courses =[...courses, course ]
-      // });
-    }
-    //console.log(courses);
-    //console.log(JSON.stringify(courses));
-    res.json(JSON.parse(JSON.stringify(courses)));
+    
+    console.log(courses);
+    res.json(courses);
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
+app.get('/api/usercourses',verifyToken, async (req, res) => {
+  try {
+    var courses = [];
+    const userId = req.user.userId;
+    if(req.user.role === "admin")
+    {
+      courses = await Course.find({ status: "pending" });
+    }
+    else if(req.user.role === "teacher")
+    {
+      courses = await Course.find({ instructor: userId });
+    }
+    else
+    {
+      const studentEnrollments = await StudentEnrollment.find({ userId });
+      console.log(studentEnrollments);
+
+      const coursePromises = studentEnrollments.map(async (enrollment) => {
+        try {
+          console.log(enrollment.courseId);
+          const course = await Course.findById(enrollment.courseId);
+          return course;
+        } catch (error) {
+          console.error('Error fetching course:', error);
+          throw error; // Propagate the error up
+        }
+      });
+  
+      courses = await Promise.all(coursePromises);
+    }
+    console.log(courses);
+    res.json(courses);
+  } catch (error) {
+    console.error('Error fetching courses from MongoDB:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
 app.post('/api/courses', upload.single('image'), async (req, res) => {
   try {
     const { courseId, name, description, duration, instructor } = req.body;
@@ -231,6 +304,7 @@ app.post('/api/courses', upload.single('image'), async (req, res) => {
     res.status(500).json({ error: 'Internal server error' });
   }
 });
+
 app.listen(3001, () => {
   console.log('Server is running');
 });

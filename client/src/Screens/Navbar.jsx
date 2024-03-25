@@ -11,6 +11,10 @@ const Header = (props) => {
   const handleLogout = () => {
     // Clear the token from localStorage
     localStorage.removeItem('token');
+    if (location.pathname === "/home") {
+      // If the current route is "/home", refresh the page
+      window.location.reload();
+    }
   };
 
   return (
@@ -28,14 +32,28 @@ const Header = (props) => {
             <nav className="header__menu">
               <ul>
                 <li><Link to="/home">Home</Link></li>
+                {user && (
+                    <li><Link to="/dashboard">Dashboard</Link></li>)
+                }
+                
+                <li><Link to="/courses">Courses</Link></li>
                 <li className="dropdown">
-                  <Link to="/courses">Courses</Link>
+                  {user && user.role === "student" && (
+                    <Link to="#">My Enrollments</Link>)
+                  }
+                  {user && user.role === "teacher" && (
+                    <Link to="#">My Courses</Link>)
+                  }
+                  {user && user.role === "admin" && (
+                    <Link to="#">My Approvals</Link>)
+                  }
+                  
                   <ul className="dropdown-menu">
-                    {courses && courses.map(course => (
+                  {courses && courses.map(course => (
                       <li key={course.courseId} className="dropdown-item">
                         <Link to={`/courses/${course.courseId}`}>{course.name}</Link>
                       </li>
-                    ))}
+                  ))}
                   </ul>
                 </li>
                 <li><Link to="#">subscription</Link></li>
@@ -53,7 +71,7 @@ const Header = (props) => {
               ):user && (
               <div id="LoginUser" className="header__right__auth">
                 <button className="login_register_button"><Link to="#" style={{ color: 'white' }}>{user.name}</Link></button> 
-                <button className="login_register_button" onClick={handleLogout}><Link to="/login" style={{ color: 'white' }}>Logout</Link></button>
+                <button className="login_register_button" onClick={handleLogout}><Link to="/home" style={{ color: 'white' }}>Logout</Link></button>
               </div>
               )}
             </div>
