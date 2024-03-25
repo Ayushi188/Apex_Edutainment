@@ -15,7 +15,9 @@ import Home from './Screens/Home';
 import Courses from './Screens/Courses';
 import Dashboard from './Screens/Dashboard';
 import StudentEnrollment from './Screens/StudentEnrollement';
-
+import CourseContent from './Screens/CourseContent';
+import QuizForm from './Screens/QuizForm';
+import QuizAttempt from './Screens/QuizAttempt';
 
 function App() {
   const [count, setCount] = useState(0)
@@ -33,6 +35,9 @@ function App() {
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/student-enrollment" element={<StudentEnrollment />} />
+                <Route path="/coursecontent" element={<CourseContent />} />
+                <Route path="/create-quiz" element={<QuizForm />} />
+                <Route path="/attempt-quiz" element={<QuizAttempt />} />
             </Routes>
           </div> 
         </Router>   
