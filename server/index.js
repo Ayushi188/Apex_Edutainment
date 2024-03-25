@@ -350,6 +350,64 @@ app.delete('/api/course-enrollments/:userId/:courseId', async (req, res) => {
   }
 });
 
+app.put('/register/approve/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    await UserModel.findByIdAndUpdate(userId, { approved: true });
+
+    res.status(200).json({ message: 'User approved successfully' });
+  } catch (error) {
+    console.error('Error approving user:', error);
+    res.status(500).json({ error: 'Failed to approve user. Please try again later.' });
+  }
+});
+
+app.put('/register/reject/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    await sendRejectEmail(user.email);
+
+    // Remove the user from the database
+    await UserModel.findByIdAndDelete(userId);
+
+    res.status(200).json({ message: 'User rejected and removed successfully' });
+  } catch (error) {
+    console.error('Error rejecting user:', error);
+    res.status(500).json({ error: 'Failed to reject user. Please try again later.' });
+  }
+});
+
+
+const nodemailer = require('nodemailer');
+
+
+// Create a transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'apexdevelopment123@gmail.com',
+    pass: 'itya lcod fsoa axxw'
+  }
+});
+
+// Function to send email
+const sendEmail = async (email) => {
+  try {
+    await transporter.sendMail({
+      from: 'apexdevelopment123@gmail.com',
+      to: email,
+      subject: 'Account Approved',
+      text: 'Your account has been approved. You can now login.'
+    });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw error; // Rethrow the error to handle it elsewhere if needed
+  }
+};
 app.post('/api/quizzes', upload.array('images', 10), async (req, res) => {
   try {
     const { title, courseId, questions } = req.body;
@@ -397,7 +455,59 @@ app.get('/api/quizzes/:quizId', async (req, res) => {
 });
 
 
+const sendRejectEmail = async (email) => {
+  try {
+    await transporter.sendMail({
+      from: 'apexdevelopment123@gmail.com',
+      to: email,
+      subject: 'Accout Rejected',
+      text: 'Your account has been rejected. Try again.'
+    });
+  } catch (error) {
+    console.error('Error sending rejection email:', error);
+    throw error; // Rethrow the error to handle it elsewhere if needed
+  }
+};
 
+// Route to handle sending email
+app.post("/send-email", async (req, res) => {
+  const { email } = req.body;
+  try {
+    await sendEmail(email);
+    res.status(200).json({ message: "Email sent successfully" });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ error: "Failed to send email" });
+  }
+});
 
+app.post("/send-reject-email", async (req, res) => {
+  const { email } = req.body;
+  try {
+    await sendRejectEmail(email);
+    res.status(200).json({ message: "Reject Email sent successfully" });
+  } catch (error) {
+    console.error("Error sending reject email:", error);
+    res.status(500).json({ error: "Failed to send reject email" });
+  }
+});
 
+app.get('/register', async (req, res) => {
+  try {
+    const pendingUsers = await UserModel.find({ approved: false });
+    res.json(pendingUsers);
+  } catch (error) {
+    console.error('Error fetching pending users:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
 
+// app.get('/pending-users', async (req, res) => {
+//   try {
+//     const pendingUsers = await UserModel.find({ approved: false });
+//     res.json(pendingUsers);
+//   } catch (error) {
+//     console.error('Error fetching pending users:', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });
