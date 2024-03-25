@@ -15,6 +15,7 @@ import Home from './Screens/Home';
 import Courses from './Screens/Courses';
 import Dashboard from './Screens/Dashboard';
 import StudentEnrollment from './Screens/StudentEnrollement';
+import AdminApproval  from './Screens/AdminApproval';
 
 
 function App() {
@@ -32,6 +33,7 @@ function App() {
                 <Route path="/login" element={<Login />} />
                 <Route path="/courses" element={<Courses />} />
                 <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/adminapproval" element={<AdminApproval />} />
                 <Route path="/student-enrollment" element={<StudentEnrollment />} />
             </Routes>
           </div> 
