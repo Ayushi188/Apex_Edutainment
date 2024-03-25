@@ -11,6 +11,7 @@ const UserSchema = new mongoose.Schema({
   parentEmail: String,
   school: String,
   role:String,
+  approved: Boolean
 })
 
 UserSchema.pre('save', async function(next) {
