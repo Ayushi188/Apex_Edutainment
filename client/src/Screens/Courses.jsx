@@ -189,7 +189,7 @@ const CoursePage = () => {
                     <div className="all-btn all-category d-flex align-items-center">
                     {user && user.role === 'student' && (
                       <>
-                        <Link to="/checkout" className="btn btn-primary">Buy Now</Link>
+                        {/* <Link to="/checkout" className="btn btn-primary">Buy Now</Link> */}
                         <button className="btn btn-primary" onClick={() => handleAddToCart(course._id)}>Add To Cart</button>
                       </>
                     )}

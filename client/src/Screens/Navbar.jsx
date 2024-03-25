@@ -20,6 +20,8 @@ const Header = (props) => {
     if (location.pathname === "/home") {
       // If the current route is "/home", refresh the page
       window.location.reload();
+    }else{
+      window.location.href = '/home';
     }
   };
 
@@ -167,10 +169,9 @@ const Header = (props) => {
                   <div className="dropdown-menu" style={{left:'-95px'}} aria-labelledby="dropdownMenuButton">
                     <span className="dropdown-item">{user.name}({user.role})</span>
                     {user && user.role == "student" && (
-                    <span className="dropdown-item">Cart</span>
-                    
+                    <a className="dropdown-item"  href="/cart">Cart</a>
                     )}
-                    <a className="dropdown-item"  onClick={handleLogout} href="#"><Link to="/home">Logout</Link></a>
+                    <a className="dropdown-item"  onClick={handleLogout} href="#">Logout</a>
                   </div>
               </div>
              )}

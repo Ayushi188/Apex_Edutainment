@@ -742,6 +742,9 @@ a {
 	-ms-transform: rotate(-135deg);
 	transform: rotate(-135deg);
 }
+.main-nav a {
+color:black;
+}
 .user-menu {
     float: right;
     margin: 0;
