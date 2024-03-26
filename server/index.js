@@ -15,6 +15,11 @@ const Payment = require('./models/Payment');
 const OrderItem = require('./models/orderItem');
 
 const stripe = require('stripe')('sk_test_51OwHCkP1ms7owmBeDD4G1qiKfYBWTzYlwMgPe8BMnRqvQFqwSkydZS2ugtUVzXf1A7eaysPpExdFLioMirwbFGjq00vNesjpbx');
+const nodemailer = require('nodemailer');
+const VideoSubmission = require('./models/VideoSubmission');
+const File = require('./models/File');
+const Quiz = require('./models/Quiz');
+const FeedbackForm = require('./models/FeedbackForm'); 
 
 const app = express();
 app.use(cors());
@@ -34,6 +39,63 @@ const storage = multer.diskStorage({
   }
 });
 const upload = multer({ storage: storage });
+//course content for extra material
+app.post('/api/file', upload.single('file'), async (req, res) => {
+  try {
+    const { courseId } = req.body;
+    if (!req.file) {
+      return res.status(400).json({ message: 'No file uploaded' });
+    }
+    const newFile = new File({
+      filename: req.file.originalname,
+      path: req.file.path,
+      courseId: courseId
+
+    });
+    await newFile.save();
+    return res.status(201).json({ message: 'File uploaded successfully', file: newFile });
+  } catch (error) {
+    console.error('Error uploading file:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+app.get('/api/file/:courseId', async (req, res) => {
+  try {
+    const { courseId } = req.params;
+    const files = await File.find({ courseId });
+    if (!files) {
+      return res.status(404).json({ message: 'Files not found for this course' });
+    }
+    return res.status(200).json({ files });
+  } catch (error) {
+    console.error('Error fetching files:', error);
+    return res.status(500).json({ message: 'Internal server error' });
+  }
+});
+
+// Route to handle video submissions
+app.post('/api/submitVideos', async (req, res) => {
+  try {
+      const { videoUrl, courseId } = req.body;
+      const videoSubmission = new VideoSubmission({ videoUrl, courseId });
+      const savedVideoSubmission = await videoSubmission.save();
+      res.status(201).json(savedVideoSubmission);
+  } catch (error) {
+      console.error('Error submitting videos:', error);
+      res.status(500).json({ message: 'Error submitting videos' });
+  }
+});
+//get data with course id
+app.get('/api/videos/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const videos = await VideoSubmission.find({ courseId });
+      res.json({ videos });
+  } catch (error) {
+      console.error('Error fetching videos:', error);
+      res.status(500).json({ message: 'Error fetching videos' });
+  }
+});
 
 const createAdminUser = async () => {
   try {
@@ -60,6 +122,14 @@ const createAdminUser = async () => {
 };
 
 createAdminUser();
+//nodemailer(gmail)
+const transporter_1 = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'hardeepdhami02@gmail.com',
+    pass: 'jozf wekv qlse vnuh' 
+  }
+});
 
 app.post('/register', async (req, res) => {
   try {
@@ -132,6 +202,7 @@ const verifyToken = (req, res, next) => {
       return res.status(403).json({ message: 'Failed to authenticate token' });
     }
     req.user = decoded;
+    console.log(decoded);
     next();
   });
 };
@@ -192,6 +263,7 @@ app.get('/api/courses',verifyUser, async (req, res) => {
       )
     }
     
+    //console.log(courses);
     res.json(courses);
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
@@ -236,6 +308,19 @@ app.get('/api/usercourses',verifyToken, async (req, res) => {
   }
 });
 
+//get data with course id
+app.get('/api/courses/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const course = await Course.findOne({ _id:courseId });
+      console.log(course)
+      res.json(course);
+  } catch (error) {
+      console.error('Error fetching course:', error);
+      res.status(500).json({ message: 'Error fetching course' });
+  }
+});
+
 app.post('/api/courses', upload.single('image'), async (req, res) => {
   try {
     const { courseId, name, description, duration, instructor } = req.body;
@@ -249,6 +334,43 @@ app.post('/api/courses', upload.single('image'), async (req, res) => {
     //res.status(400).send(error);
     console.error('Error adding course:', error);
     res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/feedbackForm',upload.single('file'),async (req, res) => {
+  const { name, email, message } = req.body;
+  const file = req.file; 
+
+  try {
+    const newFeedbackForm = new FeedbackForm({
+      name,
+      email,
+      message,
+      file: file ? file.path : null
+
+    });
+
+    await newFeedbackForm.save();
+
+    const mailOptions = {
+      from: 'hardeepdhami02@gmail.com',
+      to: email,
+      subject: 'We have Received Your Query',
+      text: `Hello ${name},\n\nThank you for reaching out to us with your query. We have received it and want to assure you that your questions are important to us.\n\nOur team is currently reviewing your query and will provide you with a thorough response shortly. Please bear with us as we work to address your concerns.\n\nIn the meantime, if you have any additional information or urgent matters to discuss, feel free to reach out to us.\n\nThank you for choosing us to assist you with your query.\n\n\nBest regards,\nApex Team`
+    };
+
+    transporter_1.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
+
+    res.status(201).json({ message: 'Form submitted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
   }
 });
 
@@ -292,7 +414,17 @@ app.delete('/api/course-enrollments/:userId/:courseId', async (req, res) => {
   }
 });
 
+app.put('/register/approve/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    await UserModel.findByIdAndUpdate(userId, { approved: true });
 
+    res.status(200).json({ message: 'User approved successfully' });
+  } catch (error) {
+    console.error('Error approving user:', error);
+    res.status(500).json({ error: 'Failed to approve user. Please try again later.' });
+  }
+});
 
 app.post('/api/cart/add', async (req, res) => {
     try {
@@ -550,6 +682,149 @@ app.get('/api/cancel-redirect', async (req, res) => {
 
 
 
+app.put('/register/reject/:userId', async (req, res) => {
+  try {
+    const userId = req.params.userId;
+    const user = await UserModel.findById(userId);
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+    await sendRejectEmail(user.email);
+
+    // Remove the user from the database
+    await UserModel.findByIdAndDelete(userId);
+
+    res.status(200).json({ message: 'User rejected and removed successfully' });
+  } catch (error) {
+    console.error('Error rejecting user:', error);
+    res.status(500).json({ error: 'Failed to reject user. Please try again later.' });
+  }
+});
 
 
+// Create a transporter
+const transporter = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'apexdevelopment123@gmail.com',
+    pass: 'itya lcod fsoa axxw'
+  }
+});
 
+// Function to send email
+const sendEmail = async (email) => {
+  try {
+    await transporter.sendMail({
+      from: 'apexdevelopment123@gmail.com',
+      to: email,
+      subject: 'Account Approved',
+      text: 'Your account has been approved. You can now login.'
+    });
+  } catch (error) {
+    console.error('Error sending email:', error);
+    throw error; // Rethrow the error to handle it elsewhere if needed
+  }
+};
+app.post('/api/quizzes', upload.array('images', 10), async (req, res) => {
+  try {
+    const { title, courseId, questions } = req.body;
+    const quiz = new Quiz({ title, courseId, questions });
+    
+    // Save image URLs to the database
+    questions.forEach((question, index) => {
+      if (req.files && req.files[index]) {
+        question.image = req.files[index].path; // Assuming multer has saved images in the 'uploads/' directory
+      }
+    });
+    
+    await quiz.save();
+    res.status(201).json({ message: 'Quiz created successfully' });
+  } catch (error) {
+    console.error('Error creating quiz:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+//get data with course id
+app.get('/api/quizzes/:courseId', async (req, res) => {
+  try {
+      const courseId = req.params.courseId;
+      const quizzes = await Quiz.find({ courseId });
+      res.json({ quizzes });
+  } catch (error) {
+      console.error('Error fetching quizzes:', error);
+      res.status(500).json({ message: 'Error fetching quizzes' });
+  }
+});
+
+//get data with quiz id
+app.get('/api/quizzes/:quizId', async (req, res) => {
+  try {
+      const quizId = req.params.quizId;
+      const quiz = await Quiz.find({ _id :quizId });
+      console.log(quiz);
+      console.error('fetched quiz:', error);
+      res.json({ quiz });
+  } catch (error) {
+      console.error('Error fetching quiz:', error);
+      res.status(500).json({ message: 'Error fetching quiz' });
+  }
+});
+
+
+const sendRejectEmail = async (email) => {
+  try {
+    await transporter.sendMail({
+      from: 'apexdevelopment123@gmail.com',
+      to: email,
+      subject: 'Accout Rejected',
+      text: 'Your account has been rejected. Try again.'
+    });
+  } catch (error) {
+    console.error('Error sending rejection email:', error);
+    throw error; // Rethrow the error to handle it elsewhere if needed
+  }
+};
+
+// Route to handle sending email
+app.post("/send-email", async (req, res) => {
+  const { email } = req.body;
+  try {
+    await sendEmail(email);
+    res.status(200).json({ message: "Email sent successfully" });
+  } catch (error) {
+    console.error("Error sending email:", error);
+    res.status(500).json({ error: "Failed to send email" });
+  }
+});
+
+app.post("/send-reject-email", async (req, res) => {
+  const { email } = req.body;
+  try {
+    await sendRejectEmail(email);
+    res.status(200).json({ message: "Reject Email sent successfully" });
+  } catch (error) {
+    console.error("Error sending reject email:", error);
+    res.status(500).json({ error: "Failed to send reject email" });
+  }
+});
+
+app.get('/register', async (req, res) => {
+  try {
+    const pendingUsers = await UserModel.find({ approved: false });
+    res.json(pendingUsers);
+  } catch (error) {
+    console.error('Error fetching pending users:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// app.get('/pending-users', async (req, res) => {
+//   try {
+//     const pendingUsers = await UserModel.find({ approved: false });
+//     res.json(pendingUsers);
+//   } catch (error) {
+//     console.error('Error fetching pending users:', error);
+//     res.status(500).json({ error: 'Internal server error' });
+//   }
+// });

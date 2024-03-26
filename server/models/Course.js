@@ -9,6 +9,7 @@ const courseSchema = new mongoose.Schema({
   instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
   imagePath: { type: String, required: false },
   price: { type: String, required: false },
+  status: { type: String, required: false, default: 'pending' }
 });
 
 const Course = mongoose.model('Course', courseSchema);

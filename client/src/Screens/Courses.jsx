@@ -3,14 +3,13 @@ import Navbar from './Navbar';
 import VideoSection from './VideoSection';
 import React, { useState, useEffect } from "react";
 import { Modal, Button, Form, Alert } from 'react-bootstrap';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Footer from './Footer';
 import InstructorDashboard from './InstructorDashboard';
 import StudentDashboard from './StudentDashboard';
 import AdminDashboard from './AdminDashboard';
 import Swal from 'sweetalert2';
-import { Link } from 'react-router-dom';
 
 const CoursePage = () => {
   const [courses, setCourses] = useState(null);
@@ -135,7 +134,7 @@ const CoursePage = () => {
         {user &&
           (
             user.role === "admin" ? (<AdminDashboard />) :
-            (user.role === "teacher" ? (<InstructorDashboard />) : (<StudentDashboard />) )
+            (user.role === "teacher" ? (<InstructorDashboard user={user}/>) : (<StudentDashboard />) )
           )
         }
         <div className='container mt-5'>
@@ -168,7 +167,7 @@ const CoursePage = () => {
                             <a href="#"><i className="far fa-heart"></i></a>
                         </div>
                     </div>
-                    <h3 className="title"><a href="course-details.html">{course.name}</a></h3>
+                    <h3 className="title"><Link to={`/coursecontent?courseId=${course._id}`}>{course.name}</Link></h3>
                     <div className="course-info d-flex align-items-center">
                         <div className="rating-img d-flex align-items-center">
                             <img src="/img/icon/icon-01.svg" alt="" className="img-fluid" />

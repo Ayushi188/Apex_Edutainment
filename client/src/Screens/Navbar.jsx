@@ -15,7 +15,7 @@ const Header = (props) => {
   
 
   const handleLogout = () => {
-    // Clear the token from localStorage
+    // Clear the token from localStorage1
     localStorage.removeItem('token');
     if (location.pathname === "/home") {
       // If the current route is "/home", refresh the page
@@ -24,6 +24,7 @@ const Header = (props) => {
       window.location.href = '/home';
     }
   };
+
 
   return (
     // <ul>
