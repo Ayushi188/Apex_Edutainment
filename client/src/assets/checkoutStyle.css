@@ -1,0 +1,308 @@
+.course-content {
+	background:#fafafa;
+	padding: 80px 0px;
+}
+.course-design {
+	border: 1px solid #e9ecef;
+}
+.course-design .product {
+	background: #fff;
+}
+.course-design .product:hover {
+	background: #fff;
+}
+.course-design .product:hover .course-info p, 
+.course-design .product:hover .course-name p, 
+.course-design .product:hover .course-name h4 a, 
+.course-design .product:hover .btn-primary,
+.course-design .product:hover .course-share i,
+.course-design .product:hover .product-content h3 a {
+    color: #000000;
+}
+.course-design .product:hover .rating-img img, 
+.course-design .product:hover .course-view img {
+    filter: none;
+}
+.course-design .product:hover {
+	color: #000000;
+}
+.course-design .product:hover .course-share i {
+    color: #FF5364;
+}
+.course-design .all-category .btn-primary:hover{
+	color: #fff;
+}
+.course-design .course-info p {
+	font-size: 15px;
+}
+.course-design .product {
+	padding: 12px;
+}
+.course-design .price h3 {
+    font-size: 20px;
+}
+.price {
+    min-width: 140px;
+    padding: 6px 15px;
+}
+
+.checkout-form {
+	padding: 20px;
+}
+.checkout-form label {
+	color: #685F78;
+    font-weight: 600;
+	font-size: 16px;
+}
+.checkout-form .form-control,
+.checkout-form .form-select {
+	border-color: rgba(255, 222, 218, 0.71);
+    border-radius: 5px;
+    min-height: 40px;
+}
+.checkout-form .form-control:focus {
+	border: 1px solid #EB9481;
+}
+.checkout-form .input-block {
+	margin-bottom: 20px;
+}
+.checkout-form .form-select:focus {
+	box-shadow: none;
+}
+.checkout-form .form-control::placeholder {
+	font-size: 14px;
+	color: #a2a2a2;
+}
+.student-widget {
+    border: 1px solid #2874c0;
+	text-align: center;
+    border-radius: 10px;
+}
+
+.checkout-widget .student-widget-group {
+	padding: 0;
+}
+.ship-check .form-check-input {
+	border-radius: 0;
+	border-color: #FFDEDA;
+	margin-right: 10px;
+	font-size: 20px;
+	margin-top: 0;
+}
+.ship-check {
+	font-size: 14px;
+	margin-bottom: 15px;
+}
+.pay-method {
+	margin-top: 40px;
+}
+.payment-btn .btn-primary {
+	background: #FF5364;
+	border: 1px solid #FF5364;
+	color: #fff;
+	padding: 12px 15px;
+	font-size: 16px;
+	font-weight: 700;
+	min-width: 600px;
+}
+.payment-btn .btn-primary:hover {
+	background: #e14151;
+	border: 1px solid #e14151;
+}
+.select-plan-group .student-widget-group {
+	padding: 20px;
+}
+.plan-header {
+	background: #392C7D;
+}
+.plan-header h4 {
+	font-size: 24px;
+	color: #fff;
+	text-align: center;
+	padding: 15px 15px;
+    margin-bottom: 0;
+}
+.basic-plan h3 {
+	font-size: 24px;
+	color: #FF5364;
+	margin-bottom: 15px;
+}
+.basic-plan h2 {
+	font-size: 36px;
+	color: #392C7D;
+	font-weight:700;
+	margin-bottom: 0;
+}
+.basic-plan h2 span {
+	font-size: 18px;
+}
+.basic-plan p {
+	font-size: 14px;
+	margin-bottom: 15px;
+}
+.plan-header {
+	margin-bottom: 20px;
+}
+.benifits-feature ul {
+	padding: 0;
+	margin: 0;
+}
+.benifits-feature ul li {
+	list-style: none;
+}
+.wallet-method .custom_radio {
+    color: #555;
+    display: inline-flex;
+    align-items: center;
+    position: relative;
+    font-size: 14px;
+    padding-left: 30px;
+    margin-bottom: 10px;
+    cursor: pointer;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+}
+.wallet-method .custom_radio .checkmark {
+    height: 25px;
+    width: 25px;
+}
+.wallet-method .custom_radio .checkmark {
+    position: absolute;
+    left: 0;
+    height: 20px;
+    width: 20px;
+    background-color: #fff;
+    border: 1px solid #ffe6e1;
+    border-radius: 50%;
+}
+.wallet-method .custom_radio input {
+    position: absolute;
+    opacity: 0;
+}
+.wallet-method .custom_radio input:checked ~ .checkmark:after {
+    opacity: 1;
+}
+.wallet-method .custom_radio .checkmark:after {
+    display: block;
+    content: "";
+    position: absolute;
+    opacity: 0;
+    top: 4px;
+    left: 4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff5b37;
+    -moz-transition: all 0.3s ease-in-out;
+    -o-transition: all 0.3s ease-in-out;
+    -webkit-transition: all 0.3s ease-in-out;
+    -ms-transition: all 0.3s ease-in-out;
+    transition: all 0.3s ease-in-out;
+}
+.wallet-method {
+	margin: 10px 0px;
+}
+.benifits-feature {
+	margin: 30px 0px;
+}
+.benifits-feature h3 {
+	font-size: 18px;
+	color: #000;
+	font-weight: 700;
+	margin-bottom: 30px;
+}
+.benifits-feature ul li {
+	font-size: 14px;
+	color: #685F78;
+	display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+	align-items: center;
+	margin-bottom: 15px;
+}
+.benifits-feature ul li i {
+	font-size: 7px;
+	margin-right: 10px;
+}
+.plan-change .btn-primary {
+	font-size: 16px;
+	font-weight: 700;
+	color: #392C7D;
+	background:#fff;
+	border: 1px solid #392C7D;
+	border-radius: 0px;
+	width: 100%;
+	padding: 12px 15px;
+}
+.plan-change .btn-primary:hover {
+	background: #392C7D;
+	border: 1px solid #392C7D;
+	color: #fff;
+}
+
+.add-course-info .form-control {
+    background: #FFFFFF;
+    border: 1px solid #e9ecef;
+    border-radius: 5px;
+    min-height: 40px;
+}
+.add-course-info .input-block {
+    margin-bottom: 20px;
+}
+
+.checkout-form .form-control, .checkout-form .form-select {
+    border-color: rgba(255, 222, 218, 0.71);
+    border-radius: 5px;
+    min-height: 40px;
+}
+
+.cart-head {
+    padding: 20px;
+	text-align: center;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.benifits-feature {
+	margin: 30px 0px;
+}
+
+.benifits-feature h3 {
+	font-size: 18px;
+	color: #000;
+	font-weight: 700;
+	margin-bottom: 30px;
+}
+.benifits-feature ul li {
+	font-size: 14px;
+	color: #685F78;
+	display: -webkit-box;
+    display: -ms-flexbox;
+    display: flex;
+	-webkit-box-align: center;
+	-ms-flex-align: center;
+	align-items: center;
+	margin-bottom: 15px;
+}
+.benifits-feature ul li i {
+	font-size: 7px;
+	margin-right: 10px;
+}
+.plan-change .btn-primary {
+	font-size: 16px;
+	font-weight: 700;
+	color: #392C7D;
+	background:#fff;
+	border: 1px solid #392C7D;
+	border-radius: 0px;
+	width: 100%;
+	padding: 12px 15px;
+}
+.plan-change .btn-primary:hover {
+	background: #392C7D;
+	border: 1px solid #392C7D;
+	color: #fff;
+}

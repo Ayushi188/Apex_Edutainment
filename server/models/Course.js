@@ -8,6 +8,7 @@ const courseSchema = new mongoose.Schema({
   duration: { type: Number, required: true },
   instructor: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true},
   imagePath: { type: String, required: false },
+  price: { type: String, required: false },
   status: { type: String, required: false, default: 'pending' }
 });
 
