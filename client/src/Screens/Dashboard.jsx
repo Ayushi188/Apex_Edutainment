@@ -1,9 +1,8 @@
 import React ,{ useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import Navbar from './Navbar';
 import Swal from 'sweetalert2';
-import { Link } from 'react-router-dom';
 
 import VideoSection from './VideoSection';
 import  Footer from './Footer';
@@ -121,7 +120,7 @@ export default function Dashboard() {
         {user &&
           (
             user.role === "admin" ? (<AdminDashboard />) :
-            (user.role === "teacher" ? (<InstructorDashboard />) : (<StudentDashboard />) )
+            (user.role === "teacher" ? (<InstructorDashboard user={user}/>) : (<StudentDashboard />) )
           )
         }
   <div className='container mt-5'>
@@ -154,8 +153,7 @@ export default function Dashboard() {
                                   <a href="#"><i className="far fa-heart"></i></a>
                               </div>
                           </div>
-                          <h3 className="title"><a href="course-details.html">{course.name}</a></h3>
-                          <div className="course-info d-flex align-items-center">
+                          <h3 className="title"><Link to={`/coursecontent?courseId=${course._id}`} >{course.name}</Link></h3>                          <div className="course-info d-flex align-items-center">
                               <div className="rating-img d-flex align-items-center">
                                   <img src="/img/icon/icon-01.svg" alt="" className="img-fluid" />
                                   <p>13+ Lesson</p>

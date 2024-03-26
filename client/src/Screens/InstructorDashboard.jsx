@@ -13,6 +13,7 @@ const InstructorDashboard = (props) => {
   const [minutes, setMinutes] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [errors, setErrors] = useState({});
+  const user = props.user;
 
   const resetForm = () => {
     setCourseId('');
