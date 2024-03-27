@@ -13,41 +13,41 @@ const AdminApproval = () => {
 
   useEffect(() => {
     fetchPendingUsers();
-    // fetchUser();
-    // fetchCourses();
+    fetchUser();
+    fetchCourses();
   }, []);
 
 
-  // const fetchUser = async () => {
-  //   try {
-  //     const response = await axios.get('http://localhost:3001/api/user', {
-  //       headers: {
-  //         Authorization: `Bearer ${localStorage.getItem('token')}`,
-  //       },
-  //     });
-  //     setUser(response.data.user);
-  //     console.log('user fetched:'+ response.data.user);
-  //   } catch (error) {
-  //     console.error('Error fetching user:', error);
-  //     setUser(null);
-  //   }
-  // };
+  const fetchUser = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/api/user', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setUser(response.data.user);
+      console.log('user fetched:'+ response.data.user);
+    } catch (error) {
+      console.error('Error fetching user:', error);
+      setUser(null);
+    }
+  };
 
-  // const fetchCourses = async () => {
-  //   try {
-  //     const response = await axios.get('http://localhost:3001/api/usercourses', {
-  //       headers: {
-  //         Authorization: `Bearer ${localStorage.getItem('token')}`,
-  //       },
-  //     });
-  //     setCourses(response.data);
-  //     console.log('courses fetched:');
-  //     console.log(response.data);
-  //   } catch (error) {
-  //     console.error('Error fetching courses:', error);
-  //     setCourses(null);
-  //   }
-  // };
+  const fetchCourses = async () => {
+    try {
+      const response = await axios.get('http://localhost:3001/api/usercourses', {
+        headers: {
+          Authorization: `Bearer ${localStorage.getItem('token')}`,
+        },
+      });
+      setCourses(response.data);
+      console.log('courses fetched:');
+      console.log(response.data);
+    } catch (error) {
+      console.error('Error fetching courses:', error);
+      setCourses(null);
+    }
+  };
 
   const fetchPendingUsers = async () => {
     try {
@@ -63,6 +63,7 @@ const AdminApproval = () => {
   const approveUser = async (userId, userEmail) => {
     try {
       await axios.put(`http://localhost:3001/register/approve/${userId}`);
+      window.location.reload();
       await sendEmail(userEmail);
       setPendingUsers(pendingUsers.filter(user => user._id !== userId));
     } catch (error) {
@@ -73,7 +74,7 @@ const AdminApproval = () => {
   const rejectUser = async (userId, userEmail) => {
     try {
       await axios.put(`http://localhost:3001/register/reject/${userId}`);
-      // Remove the rejected user from the pending list
+      window.location.reload();
       await sendRejectEmail(userEmail);
       setPendingUsers(pendingUsers.filter(user => user._id !== userId));
     } catch (error) {

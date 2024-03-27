@@ -1,16 +1,12 @@
 import React ,{ useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import axios from 'axios';
-
 
 const AdminDashboard = (props) => {
-
-  const [user, setUser] = useState(null);
-  const [courses, setCourses] = useState(null);
   const navigate = useNavigate();
 
+
   const NavApprovals = () => {
-    navigate('/course-approvals')
+    navigate('/courseapproval')
   }
 
   return (
@@ -19,7 +15,7 @@ const AdminDashboard = (props) => {
           <button
             className="add-new-course-button"
             onClick={NavApprovals}>
-            Aprove Courses
+            Approve Courses
           </button>
         </div>
     </div>

@@ -5,12 +5,21 @@ const cors = require('cors');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const path = require('path');
+
 const UserModel = require('./models/User');
 const Course = require('./models/Course'); 
-const StudentEnrollment = require('./models/StudentEnrollment'); 
+const StudentEnrollment = require('./models/StudentEnrollment');
+const Cart = require('./models/Cart');
+const Order = require('./models/Order');
+const Payment = require('./models/Payment');
+const OrderItem = require('./models/orderItem');
+
+const stripe = require('stripe')('sk_test_51OwHCkP1ms7owmBeDD4G1qiKfYBWTzYlwMgPe8BMnRqvQFqwSkydZS2ugtUVzXf1A7eaysPpExdFLioMirwbFGjq00vNesjpbx');
+const nodemailer = require('nodemailer');
 const VideoSubmission = require('./models/VideoSubmission');
 const File = require('./models/File');
 const Quiz = require('./models/Quiz');
+const FeedbackForm = require('./models/FeedbackForm'); 
 
 const app = express();
 app.use(cors());
@@ -113,6 +122,14 @@ const createAdminUser = async () => {
 };
 
 createAdminUser();
+//nodemailer(gmail)
+const transporter_1 = nodemailer.createTransport({
+  service: 'gmail',
+  auth: {
+    user: 'hardeepdhami02@gmail.com',
+    pass: 'jozf wekv qlse vnuh' 
+  }
+});
 
 app.post('/register', async (req, res) => {
   try {
@@ -155,7 +172,7 @@ app.post('/login', async (req, res) => {
     }
 
     payload = {
-      userId: user._id, email: user.email, role: user.role, name:user.firstName
+      userId: user._id, email: user.email, role: user.role, name:user.firstName, approved: user.approved
     };
 
     // Generate JWT token
@@ -231,6 +248,7 @@ const verifyUser = (req, res, next) => {
     return next();
   });
 };
+
 app.get('/api/courses',verifyUser, async (req, res) => {
   try {
     let courses;
@@ -268,11 +286,10 @@ app.get('/api/usercourses',verifyToken, async (req, res) => {
     else
     {
       const studentEnrollments = await StudentEnrollment.find({ userId });
-      console.log(studentEnrollments);
 
       const coursePromises = studentEnrollments.map(async (enrollment) => {
         try {
-          console.log(enrollment.courseId);
+          // console.log(enrollment.courseId);
           const course = await Course.findById(enrollment.courseId);
           return course;
         } catch (error) {
@@ -283,7 +300,7 @@ app.get('/api/usercourses',verifyToken, async (req, res) => {
   
       courses = await Promise.all(coursePromises);
     }
-    console.log(courses);
+    // console.log(courses);
     res.json(courses);
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
@@ -320,6 +337,43 @@ app.post('/api/courses', upload.single('image'), async (req, res) => {
   }
 });
 
+app.post('/api/feedbackForm',upload.single('file'),async (req, res) => {
+  const { name, email, message } = req.body;
+  const file = req.file; 
+
+  try {
+    const newFeedbackForm = new FeedbackForm({
+      name,
+      email,
+      message,
+      file: file ? file.path : null
+
+    });
+
+    await newFeedbackForm.save();
+
+    const mailOptions = {
+      from: 'hardeepdhami02@gmail.com',
+      to: email,
+      subject: 'We have Received Your Query',
+      text: `Hello ${name},\n\nThank you for reaching out to us with your query. We have received it and want to assure you that your questions are important to us.\n\nOur team is currently reviewing your query and will provide you with a thorough response shortly. Please bear with us as we work to address your concerns.\n\nIn the meantime, if you have any additional information or urgent matters to discuss, feel free to reach out to us.\n\nThank you for choosing us to assist you with your query.\n\n\nBest regards,\nApex Team`
+    };
+
+    transporter_1.sendMail(mailOptions, function(error, info) {
+      if (error) {
+        console.error('Error sending email:', error);
+      } else {
+        console.log('Email sent:', info.response);
+      }
+    });
+
+    res.status(201).json({ message: 'Form submitted successfully' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Internal Server Error' });
+  }
+});
+
 app.listen(3001, () => {
   console.log('Server is running');
 });
@@ -335,6 +389,16 @@ app.get('/api/student-enrollments/:userId', async (req, res) => {
     res.json(studentEnrollments);
   } catch (error) {
     console.error('Error fetching student enrollments:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.get('/api/all-courses', async (req, res) => {
+  try {
+    const courses = await Course.find({ status: 'approved' });
+    res.json(courses);
+  } catch (error) {
+    console.error('Error fetching courses from MongoDB:', error);
     res.status(500).json({ error: 'Internal server error' });
   }
 });
@@ -362,6 +426,262 @@ app.put('/register/approve/:userId', async (req, res) => {
   }
 });
 
+app.post('/api/cart/add', async (req, res) => {
+    try {
+        const { userId, courseId } = req.body;
+
+       
+        const cartData = await Cart.find();
+
+        // Check if userId and courseId are provided
+        if (!userId || !courseId) {
+            return res.status(400).json({ error: 'userId and courseId are required' });
+        }
+
+        let isCourseInCart = false;
+        for (const cartItem of cartData) {
+          // Convert user_id and course_id of cart item to string for comparison
+          const cartUserIdString = cartItem.user_id.toString();
+          const cartCourseIdString = cartItem.course_id.toString();
+    
+          // Check if the courseId and userId match with the current cart item
+          if (cartUserIdString === userId && cartCourseIdString === courseId) {
+            isCourseInCart = true;
+            break; // No need to continue searching if the course is found in cart
+          }
+        }
+    
+        if (isCourseInCart) {
+          // If the course is already in the cart, send a response indicating it
+          return res.status(200).json({ warning: 'Course already in cart' });
+        }
+    
+
+        const cartItem = new Cart({
+            user_id: userId,
+            course_id: courseId,
+            created_at: new Date()
+        });
+
+        const savedCartItem = await cartItem.save();
+        res.status(201).json(savedCartItem);
+    } catch (error) {
+        console.error('Error adding course to cart:', error);
+        res.status(500).json({ error: 'Failed to add course to cart' });
+    }
+});
+
+// Route to fetch cart data
+app.post('/api/cart-data', async (req, res) => {
+  const { userId } = req.body;
+  try {
+    // Find the cart item by userId
+    const cartItems = await Cart.find({ userId });
+    if (!cartItems) {
+      return res.status(404).json({ error: 'Cart data not found' });
+    }
+    // Fetch all courses
+    const courses = await Course.find();
+    if (!courses) {
+      return res.status(404).json({ error: 'No courses found' });
+    }
+
+    // If cart data found, return it
+    res.json({ cartItems, courses });
+  } catch (error) {
+    console.error('Error fetching cart data:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// Route to remove item from cart
+app.post('/api/cart/remove', async (req, res) => {
+  const { cartId } = req.body;
+  try {
+    // Remove the item from the cart by its id
+    await Cart.deleteOne({ _id: cartId });
+    res.json({ message: 'Course removed from cart successfully' });
+  } catch (error) {
+    console.error('Error removing item from cart:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/total-payable', async (req, res) => {
+  const { userId } = req.body;
+  try {
+    // Find the cart items for the user
+    const cartItems = await Cart.find({ userId });
+
+    if (!cartItems || cartItems.length === 0) {
+      return res.status(404).json({ error: 'Cart is empty' });
+    }
+
+    // Fetch the prices of the courses from the courses table
+    const courseIds = cartItems.map(item => item.course_id);
+    const courses = await Course.find({ _id: { $in: courseIds } });
+    let totalAmount = 0;
+    
+    if (courses.length > 0) {
+        courses.forEach(c => {
+            totalAmount += parseInt(c.price);
+        });
+    }
+    res.json({ totalAmount });
+    
+  } catch (error) {
+    console.error('Error fetching cart total:', error);
+    res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/create-order', async (req, res) => {
+  try {
+      const { formData ,total, userId} = req.body;
+
+      const { firstName, lastName, phoneNumber, addressLine1, addressLine2, province, country, postalCode } = formData;
+
+      const order = new Order({
+        user_id: userId, // Convert objectId to string if userId is defined
+        total_amount : total,
+          status: 'Pending',
+          createdAt: new Date(),
+          billingAddress: {
+              firstName,
+              lastName,
+              phoneNumber,
+              addressLine1,
+              addressLine2,
+              province,
+              country,
+              postalCode
+          }
+      });
+      await order.save();
+
+      const cartItems = await Cart.find({ user_id: userId });
+
+      for (const item of cartItems) {
+        await OrderItem.create({
+            orderId: order._id,
+            courseId: item.course_id,
+            userId,
+            createdAt: new Date()
+        });
+    }
+
+      const payment = new Payment({
+          order_id: order._id,
+          paymentDate: new Date(),
+          amount: total,
+          status: 'Pending'
+      });
+      await payment.save();
+    console.log('order created')
+      res.json({ orderId: order._id });
+
+      // res.status(201).json({ orderId: order._id });
+  } catch (error) {
+      console.error('Error creating order:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+app.post('/api/create-session', async (req, res) => {
+  const {total, userId,orderId} = req.body;
+  console.log('in session')
+  const metadata = {
+    orderId: orderId,
+    // Add any other metadata fields you need
+  };
+
+  const session = await stripe.checkout.sessions.create({
+    payment_method_types: ['card'],
+    line_items: [
+      {
+        price_data: {
+          currency: 'cad',
+          product_data: {
+            name: 'Apex',
+            // Other product details
+          },
+          unit_amount: total*100, // Amount in cents
+        },
+        quantity: 1, // Quantity of the product
+      },
+    ],
+    mode: 'payment',
+    cancel_url:'http://localhost:3001/api/cancel', 
+    success_url: `http://localhost:3001/success?session_id={CHECKOUT_SESSION_ID}`,
+    metadata: metadata,
+
+  });
+  res.json({ sessionId: session.id });
+
+
+    //   if (session.payment_status === 'paid') {
+    //     await Payment.updateOne(
+    //         { orderId: order._id },
+    //         { $set: { status: 'Success' } }
+    //     );
+  
+    //     await Cart.deleteMany({ userId });
+    
+    //     res.redirect('/success');
+    // } else {
+    //     await Payment.updateOne(
+    //         { orderId: order._id },
+    //         { $set: { status: 'Failed' } }
+    //     );
+    //         res.redirect('/error');
+    // }
+});
+
+// API endpoint for success redirect
+app.get('/api/success-redirect', async (req, res) => {
+  try {
+      const { orderId } = req.query;
+            await Payment.updateOne(
+                { orderId: orderId },
+                { $set: { status: 'Success' } }
+            );
+      
+            await Cart.deleteMany({ userId });
+        
+            res.redirect('/payment-success');
+
+      res.status(200).json({ message: 'Success redirect handled successfully', orderId });
+  } catch (error) {
+      console.error('Error handling success redirect:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+// API endpoint for cancel redirect
+app.get('/api/cancel-redirect', async (req, res) => {
+  try {
+    const { orderId } = req.query;
+
+    await Payment.updateOne(
+              { orderId: orderId },
+              { $set: { status: 'Failed' } }
+          );
+              res.redirect('/payment-failed');
+
+      res.status(200).json({ message: 'Cancel redirect handled successfully' });
+  } catch (error) {
+      console.error('Error handling cancel redirect:', error);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+
+
+
+
+
+
+
 app.put('/register/reject/:userId', async (req, res) => {
   try {
     const userId = req.params.userId;
@@ -380,9 +700,6 @@ app.put('/register/reject/:userId', async (req, res) => {
     res.status(500).json({ error: 'Failed to reject user. Please try again later.' });
   }
 });
-
-
-const nodemailer = require('nodemailer');
 
 
 // Create a transporter
@@ -511,3 +828,46 @@ app.get('/register', async (req, res) => {
 //     res.status(500).json({ error: 'Internal server error' });
 //   }
 // });
+
+app.put('/api/approvecourse/:courseId', async (req, res) => {
+  const course_Id = req.params.courseId; // Accessing the name parameter directly
+  console.log("Course Name:", course_Id);
+
+  const { status } = req.body;
+  console.log("Status:", status);
+
+  try {
+    // Find the course by name and update its status
+    const updatedCourse = await Course.findOneAndUpdate({ courseId: course_Id }, { status }, { new: true }).exec();
+    if (!updatedCourse) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    res.json(updatedCourse); // Respond with the updated course
+  } catch (error) {
+    console.error("Error updating course status:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/api/rejectcourse/:courseId', async (req, res) => {
+  const course_Id = req.params.courseId; // Accessing the name parameter directly
+
+  const { status } = req.body;
+  console.log("Status:", status);
+
+  try {
+    // Find the course by name and update its status
+    const updatedCourse = await Course.findOneAndUpdate({ courseId: course_Id }, { status }, { new: true }).exec();
+    if (!updatedCourse) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    res.json(updatedCourse); // Respond with the updated course
+  } catch (error) {
+    console.error("Error updating course status:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+

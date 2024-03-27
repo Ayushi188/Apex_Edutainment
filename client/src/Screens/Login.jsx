@@ -31,23 +31,35 @@ const Login = () => {
       }
 
       const response = await axios.post('http://localhost:3001/login', formData);
+      // console.log("login data"+ response.data.payload.approved);
+      const { approved } = response.data.payload;
+      const { role } = response.data.payload;
+
       if (response.status === 200) {
-        console.log('User logged in successfully');
-        setSuccessMessage('Logged in successfully');
-        
-        const { token } = response.data;
-        localStorage.setItem('token', token);
-        const { payload } = response.data;
-        
-        //payload.role === "teacher" ? navigate('/courses') : navigate('/dashboard')
-        navigate('/dashboard')
+        if (role=== 'admin' || approved) {
+          console.log('User logged in successfully');
+          setSuccessMessage('Logged in successfully');
+  
+          const { token } = response.data;
+          localStorage.setItem('token', token);
+          const { payload } = response.data;
+      
+          // Redirect based on user role
+          // payload.role === "teacher" ? navigate('/courses') : navigate('/dashboard');
+          navigate('/dashboard');
+        } else {
+          // Display message for waiting for approval
+          setError('Waiting for approval');
+          setSuccessMessage('');
+        }
       } else {
         setError('Invalid email or password');
         setSuccessMessage('');
       }
-    } catch (error) {
+    }
+     catch (error) {
       console.error('Error during login:', error.message);
-      setError('Error during login. Please try again.');
+      setError('Error during login. Please try again with valid email and password.');
       setSuccessMessage('');
     }
   };
