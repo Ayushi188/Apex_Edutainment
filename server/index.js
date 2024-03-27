@@ -172,7 +172,7 @@ app.post('/login', async (req, res) => {
     }
 
     payload = {
-      userId: user._id, email: user.email, role: user.role, name:user.firstName
+      userId: user._id, email: user.email, role: user.role, name:user.firstName, approved: user.approved
     };
 
     // Generate JWT token
@@ -395,7 +395,7 @@ app.get('/api/student-enrollments/:userId', async (req, res) => {
 
 app.get('/api/all-courses', async (req, res) => {
   try {
-    const courses = await Course.find();
+    const courses = await Course.find({ status: 'approved' });
     res.json(courses);
   } catch (error) {
     console.error('Error fetching courses from MongoDB:', error);
@@ -828,3 +828,46 @@ app.get('/register', async (req, res) => {
 //     res.status(500).json({ error: 'Internal server error' });
 //   }
 // });
+
+app.put('/api/approvecourse/:courseId', async (req, res) => {
+  const course_Id = req.params.courseId; // Accessing the name parameter directly
+  console.log("Course Name:", course_Id);
+
+  const { status } = req.body;
+  console.log("Status:", status);
+
+  try {
+    // Find the course by name and update its status
+    const updatedCourse = await Course.findOneAndUpdate({ courseId: course_Id }, { status }, { new: true }).exec();
+    if (!updatedCourse) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    res.json(updatedCourse); // Respond with the updated course
+  } catch (error) {
+    console.error("Error updating course status:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.put('/api/rejectcourse/:courseId', async (req, res) => {
+  const course_Id = req.params.courseId; // Accessing the name parameter directly
+
+  const { status } = req.body;
+  console.log("Status:", status);
+
+  try {
+    // Find the course by name and update its status
+    const updatedCourse = await Course.findOneAndUpdate({ courseId: course_Id }, { status }, { new: true }).exec();
+    if (!updatedCourse) {
+      return res.status(404).json({ error: 'Course not found' });
+    }
+
+    res.json(updatedCourse); // Respond with the updated course
+  } catch (error) {
+    console.error("Error updating course status:", error);
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+

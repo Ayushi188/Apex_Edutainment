@@ -156,8 +156,14 @@ export default function Dashboard() {
                           <h3 className="title"><Link to={`/coursecontent?courseId=${course._id}`} >{course.name}</Link></h3>                          <div className="course-info d-flex align-items-center">
                               <div className="rating-img d-flex align-items-center">
                                   <img src="/img/icon/icon-01.svg" alt="" className="img-fluid" />
-                                  <p>13+ Lesson</p>
-                              </div>
+                                  {course.status === "pending" ? (
+                                <p>Pending approval</p>
+                              ):(
+                                <p>13+ Lesson</p>
+                              )
+                            
+                              }
+                               </div>
                               <div className="course-view d-flex align-items-center">
                                   <img src="/img/icon/icon-02.svg" alt="" className="img-fluid" />
                                   <p>10hr 30min</p>

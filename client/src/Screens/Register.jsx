@@ -72,6 +72,7 @@ const SignUp = () => {
 
       if (response.status === 201) {
         console.log("User registered successfully");
+        // setErrors('User registered successfully');
         if (response.data.userId) {
           sessionStorage.setItem("userId", response.data.userId);
         }
@@ -355,7 +356,7 @@ const SignUp = () => {
                         )}
                       </div>
                     </div>
-
+                    {successMessage && <div className="text-success mt-2">{successMessage}</div>}
                     <div>
                       <button
                         type="submit"

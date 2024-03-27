@@ -21,6 +21,8 @@ import Cart from './Screens/Cart';
 import PaymentSuccess from './Screens/PaymentSuccess';
 import PaymentFailed from './Screens/PaymentFailed';
 import AdminApproval  from './Screens/AdminApproval';
+import AdminDashboard  from './Screens/AdminDashboard'
+import CourseApproval  from './Screens/CourseApproval';
 import CourseContent from './Screens/CourseContent';
 import QuizForm from './Screens/QuizForm';
 import QuizAttempt from './Screens/QuizAttempt';
@@ -48,7 +50,8 @@ function App() {
                 <Route path="/cart" element={<Cart />} />
                 <Route path="/success" element={<PaymentSuccess/>} />
                 <Route path="/failed" element={<PaymentFailed/>} />
-
+                <Route path="/courseapproval" element={<CourseApproval />} />
+                <Route path="/admindashboard" element={<AdminDashboard />} />
                 <Route path="/adminapproval" element={<AdminApproval />} />
                 <Route path="/student-enrollment" element={<StudentEnrollment />} />
                 <Route path="/coursecontent" element={<CourseContent />} />
