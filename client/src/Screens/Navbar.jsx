@@ -119,11 +119,12 @@ const Header = (props) => {
 
                 {user && user.role === "admin" && (
                   <li className="has-submenu">
-                  <Link to="#">Course Approvals</Link></li>)
+                  <Link to="/courseapproval">Course Approvals</Link></li>)
                 }
 
                 {user && user.role === "admin" && (
-                  <li><Link to="/courses">User Approvels</Link></li>
+                  <li className="has-submenu">
+                    <Link to="/adminapproval">User Approvals</Link></li>
                 )}  
 
                   {/* <ul className="dropdown-menu">
